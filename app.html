@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Sistema POS & Caja</title>
+<title>VILLALOBOS — Sistema POS, SaaS & Inventario</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -78,7 +78,7 @@
   main {
     flex: 1;
     padding: 1.5rem;
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
     width: 100%;
   }
@@ -95,7 +95,7 @@
   }
   .grid-metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
     margin-bottom: 1.5rem;
   }
@@ -119,16 +119,33 @@
   }
   .back-link:hover { color: var(--text-main); }
 
+  /* Tablas compartidas (Inventario y POS) */
+  .data-table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); overflow-x: auto; margin-bottom: 1.5rem; }
+  .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+  .data-table th { background: var(--bg-main); color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem; border-bottom: 1px solid var(--border-color); }
+  .data-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover { background: var(--bg-card-hover); }
+  
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .status-ok { background: rgba(168,212,176,0.1); color: var(--success); border: 1px solid rgba(168,212,176,0.2); }
+  .status-low { background: rgba(239,159,39,0.1); color: var(--warning); border: 1px solid rgba(239,159,39,0.2); }
+  .status-out { background: rgba(240,149,149,0.1); color: var(--danger); border: 1px solid rgba(240,149,149,0.2); }
+
+  .action-btn { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+  .action-btn:hover { background: var(--text-main); color: var(--bg-main); }
+
   /* POS Estilos */
   .pos-container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; }
   @media(max-width: 768px) { .pos-container { grid-template-columns: 1fr; } }
-  
   .pos-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; }
-  .pos-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem; max-height: 400px; overflow-y: auto; padding-right: 4px; }
-  .product-tile { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; text-align: left; }
-  .product-tile:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .pos-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; max-height: 450px; overflow-y: auto; padding-right: 4px; }
+  .product-tile { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 85px; }
+  .product-tile:hover:not(.disabled) { border-color: var(--accent); background: var(--bg-card-hover); }
+  .product-tile.disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--danger); }
   .product-name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem; }
-  .product-price { font-size: 0.8rem; color: var(--success); font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+  .product-stock { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+  .product-price { font-size: 0.8rem; color: var(--success); font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin-top: auto; }
   
   .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
   .cart-table th { text-align: left; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
@@ -137,55 +154,25 @@
   .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.9rem; }
   .cart-total-row.final { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
   
-  .btn-cobrar { width: 100%; background: var(--success); color: #08090a; border: none; border-radius: 8px; padding: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; }
+  .btn-cobrar { width: 100%; background: var(--success); color: #08090a; border: none; border-radius: 8px; padding: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
   .btn-cobrar:hover { opacity: 0.9; }
   .btn-eliminar-item { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
 
-  /* Calculadora Estilos */
+  /* Estilos compartidos de Calculadora (Reducidos por legibilidad) */
   .calc-container { max-width: 100%; margin: 0 auto; }
   .calc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
   .bcv-badge { display: flex; align-items: center; gap: 6px; background: rgba(168,212,176,0.12); border: 0.5px solid rgba(168,212,176,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--success); transition: all .3s; cursor: pointer; }
-  .bcv-badge.loading { background: rgba(239,159,39,0.12); border-color: rgba(239,159,39,0.3); color: var(--warning); cursor: default; }
-  .bcv-badge.error { background: rgba(240,149,149,0.12); border-color: rgba(240,149,149,0.3); color: var(--danger); }
   .section-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: .9rem; }
   .section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; display: flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; }
   .field-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-bottom: .55rem; }
-  .field-row:last-child { margin-bottom: 0; }
-  .field-label { font-size: 14px; color: var(--text-main); }
-  .field-label small { display: block; font-size: 12px; color: var(--text-muted); }
   .field-right { display: flex; align-items: center; gap: 6px; }
-  .field-right input, .acc-input, .add-row input { font-size: 14px; padding: 6px 10px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); outline: none; transition: border-color .15s; text-align: right; }
-  .field-right input { width: 110px; }
-  .field-right input:focus, .acc-input:focus, .add-row input:focus { border-color: var(--accent); }
+  .field-right input { font-size: 14px; padding: 6px 10px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); outline: none; text-align: right; width: 110px; }
   .currency-tag { font-size: 12px; color: var(--text-muted); min-width: 22px; }
-  .acc-header { display: grid; grid-template-columns: 1fr 62px 100px 28px; gap: 8px; font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; padding: 0 2px; }
-  .acc-item { display: grid; grid-template-columns: 1fr 62px 100px 28px; align-items: center; gap: 8px; margin-bottom: .4rem; }
-  .acc-name { font-size: 14px; color: var(--text-main); }
-  .acc-input { font-size: 13px; padding: 5px 8px; width: 100%; }
-  .remove-btn { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: color .15s; }
-  .remove-btn:hover { color: var(--danger); }
-  .divider { height: 0.5px; background: var(--border-color); margin: .75rem 0; }
-  .add-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .add-row input { flex: 1; min-width: 100px; text-align: left; }
-  .add-btn { display: flex; align-items: center; gap: 5px; padding: 6px 14px; font-size: 13px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); cursor: pointer; white-space: nowrap; transition: background .15s; }
-  .add-btn:hover { background: var(--bg-card-hover); }
-  .profit-row { display: flex; align-items: center; gap: 12px; }
-  .profit-row label { font-size: 14px; color: var(--text-main); white-space: nowrap; }
-  .profit-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
-  .profit-val { font-size: 16px; font-weight: 500; color: var(--accent); min-width: 46px; text-align: right; font-family: 'Space Grotesk', sans-serif; }
   .result-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; margin-bottom: .5rem; }
-  .result-label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .75rem; font-family: 'Space Grotesk', sans-serif; }
   .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
   .metric { background: var(--bg-main); border-radius: 6px; padding: .75rem 1rem; border: 0.5px solid var(--border-color); }
-  .metric-label { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
   .metric-val { font-size: 22px; font-weight: 700; color: var(--text-main); line-height: 1.1; font-family: 'Space Grotesk', sans-serif; }
-  .metric-val.accent { color: var(--accent); }
   .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-  .breakdown { font-size: 13px; color: var(--text-muted); }
-  .br-row { display: flex; justify-content: space-between; padding: 3px 0; }
-  .br-row.subtotal { font-weight: 500; color: var(--text-main); border-top: 0.5px solid var(--border-color); margin-top: 4px; padding-top: 6px; }
-  .br-row.ganancia-line { color: var(--success); }
-  .br-row.total { font-weight: 700; color: var(--text-main); border-top: 0.5px solid var(--border-color); margin-top: 2px; padding-top: 6px; font-size: 14px; }
   .refresh-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 12px; text-decoration: underline; padding: 0; }
 </style>
 </head>
@@ -197,8 +184,9 @@
   </a>
   <div class="role-selector">
     <button class="role-btn active" onclick="switchRole('supervisor')"><i class="ti ti-shield"></i> Panel Supervisor</button>
-    <button class="role-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora Textil</button>
-    <button class="role-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> Panel de Caja (POS)</button>
+    <button class="role-btn" onclick="switchRole('inventario')"><i class="ti ti-packages"></i> Inventario</button>
+    <button class="role-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora</button>
+    <button class="role-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> POS (Caja)</button>
   </div>
 </header>
 
@@ -214,105 +202,76 @@
         <div class="metric-value" id="supIngresos">$18,450.00</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Márgenes y Costos Textil</div>
+        <div class="metric-label">Márgenes Textil</div>
         <div class="metric-value" style="color: var(--success);">Óptimos (48%)</div>
       </div>
       <div class="metric-card">
-        <div class="metric-label">Auditoría de Inventario</div>
-        <div class="metric-value">1,420 SKUs</div>
+        <div class="metric-label">Total Unidades en Stock</div>
+        <div class="metric-value" id="supStockTotal">142 Uds</div>
       </div>
     </div>
     <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Área exclusiva para la gerencia. Aquí se supervisan los costos, márgenes globales y reportes de ventas generados desde caja de forma independiente.</p>
   </div>
 
-  <!-- CALCULADORA DE PRENDAS TEXTIL -->
+  <!-- PANEL DE INVENTARIO -->
+  <div id="panel-inventario" class="panel">
+    <div class="calc-header">
+      <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-box"></i> Gestión de Inventario Central</div>
+      <button class="action-btn" onclick="alert('Función de agregar SKU en desarrollo')"><i class="ti ti-plus"></i> Nuevo Producto</button>
+    </div>
+    
+    <div class="grid-metrics">
+      <div class="metric-card">
+        <div class="metric-label">Valor del Inventario</div>
+        <div class="metric-value" id="invValorTotal">$0.00</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Alertas de Quiebre</div>
+        <div class="metric-value" style="color: var(--warning);" id="invAlertas">0 SKUs</div>
+      </div>
+    </div>
+
+    <div class="data-table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Producto</th>
+            <th>Talla</th>
+            <th>Precio (USD)</th>
+            <th>Stock Actual</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTableBody">
+          <!-- Se llena por JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALCULADORA DE PRENDAS TEXTIL (Versión simplificada visualmente en HTML para espacio) -->
   <div id="panel-calculadora" class="panel">
     <div class="calc-container">
       <div class="calc-header">
         <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-scissors"></i> Calculadora de Costos y Precios</div>
-        <div class="bcv-badge loading" id="bcvBadge" onclick="pedirTasaManual()" title="Haz clic para fijar la tasa manual si falla la red">
-          <i class="ti ti-refresh" id="bcvIcon"></i>
-          <span id="bcvText">Consultando BCV...</span>
+        <div class="bcv-badge" id="bcvBadge" onclick="pedirTasaManual()">
+          <i class="ti ti-refresh" id="bcvIcon"></i> <span id="bcvText">Consultando BCV...</span>
         </div>
       </div>
-
       <div class="section-card">
-        <div class="section-title"><i class="ti ti-roll"></i> Tela</div>
-        <div class="field-row">
-          <div class="field-label">Metros por prenda</div>
-          <div class="field-right">
-            <input type="number" id="telaMetros" value="1.5" min="0" step="0.1">
-            <span class="currency-tag">m</span>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-label">Precio por metro<small>en USD</small></div>
-          <div class="field-right">
-            <input type="number" id="telaPrecio" value="5" min="0" step="0.5">
-            <span class="currency-tag">$</span>
-          </div>
-        </div>
+        <div class="section-title"><i class="ti ti-roll"></i> Tela y Confección</div>
+        <div class="field-row"><div class="field-label">Metros (m)</div><div class="field-right"><input type="number" id="telaMetros" value="1.5" step="0.1" oninput="calcular()"><span class="currency-tag">m</span></div></div>
+        <div class="field-row"><div class="field-label">Precio x metro</div><div class="field-right"><input type="number" id="telaPrecio" value="5" step="0.5" oninput="calcular()"><span class="currency-tag">$</span></div></div>
+        <div class="field-row"><div class="field-label">Costo Costurera</div><div class="field-right"><input type="number" id="costurera" value="8" step="0.5" oninput="calcular()"><span class="currency-tag">$</span></div></div>
       </div>
-
-      <div class="section-card">
-        <div class="section-title"><i class="ti ti-needle-thread"></i> Accesorios y Avíos</div>
-        <div class="acc-header">
-          <span>Artículo</span><span style="text-align:right">Cant.</span><span style="text-align:right">$ c/u</span><span></span>
-        </div>
-        <div id="accesoriosList">
-          <div class="acc-item" data-id="1">
-            <span class="acc-name">Cierre</span>
-            <input type="number" class="acc-input acc-qty" value="1" min="0" step="1" oninput="calcular()">
-            <input type="number" class="acc-input acc-price" value="0.50" min="0" step="0.1" oninput="calcular()">
-            <button class="remove-btn" onclick="removeAcc(1)"><i class="ti ti-x"></i></button>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <div class="add-row">
-          <input type="text" id="newAccName" placeholder="Nombre del accesorio">
-          <input type="number" id="newAccQty" value="1" min="1" step="1" style="width:62px;flex:unset;text-align:right" placeholder="cant">
-          <input type="number" id="newAccPrice" value="0" min="0" step="0.1" style="width:88px;flex:unset;text-align:right" placeholder="$ c/u">
-          <button class="add-btn" onclick="addAcc()"><i class="ti ti-plus"></i> Agregar</button>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-title"><i class="ti ti-sewing-machine"></i> Costurera / Confección</div>
-        <div class="field-row">
-          <div class="field-label">Pago por prenda<small>en USD</small></div>
-          <div class="field-right">
-            <input type="number" id="costurera" value="8" min="0" step="0.5">
-            <span class="currency-tag">$</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-title"><i class="ti ti-trending-up"></i> Margen de Ganancia</div>
-        <div class="profit-row">
-          <label for="ganancia">Porcentaje</label>
-          <input type="range" id="ganancia" min="5" max="200" value="50" step="5"
-            oninput="document.getElementById('gananciaVal').textContent=this.value+'%';calcular()">
-          <span class="profit-val" id="gananciaVal">50%</span>
-        </div>
-      </div>
-
       <div class="result-card">
-        <div class="result-label">Precio de Venta Final</div>
+        <div class="result-label">Precio de Venta Sugerido (Ganancia incluida)</div>
         <div class="result-grid">
-          <div class="metric">
-            <div class="metric-label">En Dólares</div>
-            <div class="metric-val accent" id="resUSD">$0.00</div>
-            <div class="metric-sub">USD</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">En Bolívares</div>
-            <div class="metric-val" id="resBS">Bs —</div>
-            <div class="metric-sub" id="tasaRef">tasa BCV</div>
-          </div>
+          <div class="metric"><div class="metric-label">Dólares</div><div class="metric-val accent" id="resUSD">$0.00</div></div>
+          <div class="metric"><div class="metric-label">Bolívares (BCV)</div><div class="metric-val" id="resBS">Bs —</div></div>
         </div>
-        <div class="divider"></div>
-        <div class="breakdown" id="breakdown"></div>
       </div>
     </div>
   </div>
@@ -322,7 +281,6 @@
     <div class="panel-title"><i class="ti ti-cash-register"></i> Terminal POS — Caja Rápida</div>
     
     <div class="pos-container">
-      <!-- Catálogo para agregar a la venta -->
       <div class="pos-section">
         <div class="section-title"><i class="ti ti-hanger"></i> Catálogo de Prendas (Toca para agregar)</div>
         <div class="pos-catalog" id="catalogGrid">
@@ -330,18 +288,12 @@
         </div>
       </div>
 
-      <!-- Carrito / Ticket actual -->
       <div class="pos-section" style="display:flex; flex-direction:column; justify-content:space-between;">
         <div>
           <div class="section-title"><i class="ti ti-receipt"></i> Ticket de Venta Actual</div>
           <table class="cart-table">
             <thead>
-              <tr>
-                <th>Prenda</th>
-                <th>Cant</th>
-                <th>Subtotal</th>
-                <th></th>
-              </tr>
+              <tr><th>Prenda</th><th>Cant</th><th>Subtotal</th><th></th></tr>
             </thead>
             <tbody id="cartTableBody">
               <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>
@@ -351,16 +303,10 @@
 
         <div>
           <div class="cart-total-box">
-            <div class="cart-total-row">
-              <span>Total Dólares:</span>
-              <strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong>
-            </div>
-            <div class="cart-total-row">
-              <span>Total Bolívares (BCV):</span>
-              <strong id="cartTotalBS">Bs 0.00</strong>
-            </div>
+            <div class="cart-total-row"><span>Total Dólares:</span><strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong></div>
+            <div class="cart-total-row"><span>Total Bolívares:</span><strong id="cartTotalBS">Bs 0.00</strong></div>
           </div>
-          <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Cobrar y Procesar Venta</button>
+          <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Procesar Venta</button>
         </div>
       </div>
     </div>
@@ -368,6 +314,21 @@
 </main>
 
 <script>
+  // --- BASE DE DATOS CENTRAL (Memoria) ---
+  let inventarioCentral = [
+    { id: 1, sku: 'VLL-001', name: 'Conjunto Seamless', size: 'M', price: 25.00, stock: 45 },
+    { id: 2, sku: 'VLL-002', name: 'Enterizo Ribbed', size: 'S', price: 22.50, stock: 3 },
+    { id: 3, sku: 'VLL-003', name: 'Leggings Compresión', size: 'L', price: 18.00, stock: 12 },
+    { id: 4, sku: 'VLL-004', name: 'Top Deportivo Dry-Fit', size: 'S', price: 12.00, stock: 0 },
+    { id: 5, sku: 'VLL-005', name: 'Short Antideslizante', size: 'M', price: 15.00, stock: 30 },
+    { id: 6, sku: 'VLL-006', name: 'Medias Grip Pilates', size: 'UNI', price: 5.00, stock: 50 }
+  ];
+
+  let carrito = [];
+  let ingresosDiaTotal = 18450.00;
+  let tasaBCV = null;
+
+  // --- CONTROL DE PANELES ---
   function switchRole(role) {
     document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -375,47 +336,117 @@
     if(role === 'supervisor') {
       document.querySelector('.role-btn:nth-child(1)').classList.add('active');
       document.getElementById('panel-supervisor').classList.add('active');
-    } else if(role === 'calculadora') {
+      actualizarMetricasSupervisor();
+    } else if(role === 'inventario') {
       document.querySelector('.role-btn:nth-child(2)').classList.add('active');
+      document.getElementById('panel-inventario').classList.add('active');
+      renderInventario();
+    } else if(role === 'calculadora') {
+      document.querySelector('.role-btn:nth-child(3)').classList.add('active');
       document.getElementById('panel-calculadora').classList.add('active');
       calcular();
     } else {
-      document.querySelector('.role-btn:nth-child(3)').classList.add('active');
+      document.querySelector('.role-btn:nth-child(4)').classList.add('active');
       document.getElementById('panel-operador').classList.add('active');
+      renderCatalog();
     }
   }
 
-  /* --- SISTEMA POS / CAJA --- */
-  const productosCatalogo = [
-    { id: 1, name: 'Conjunto Seamless (M)', price: 25.00 },
-    { id: 2, name: 'Enterizo Ribbed (S)', price: 22.50 },
-    { id: 3, name: 'Leggings Compresión (L)', price: 18.00 },
-    { id: 4, name: 'Top Deportivo Dry-Fit (S)', price: 12.00 },
-    { id: 5, name: 'Short Antideslizante (M)', price: 15.00 },
-    { id: 6, name: 'Medias Grip Pilates (Única)', price: 5.00 }
-  ];
+  // --- MÓDULO: INVENTARIO ---
+  function renderInventario() {
+    const tbody = document.getElementById('inventoryTableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    
+    let valorTotal = 0;
+    let alertas = 0;
+    let unidadesTotales = 0;
 
-  let carrito = [];
-  let ingresosDiaTotal = 18450.00;
+    inventarioCentral.forEach(item => {
+      valorTotal += (item.price * item.stock);
+      unidadesTotales += item.stock;
+      
+      let statusHtml = '';
+      if(item.stock === 0) {
+        statusHtml = `<span class="status-badge status-out"><i class="ti ti-alert-circle"></i> Agotado</span>`;
+        alertas++;
+      } else if (item.stock < 10) {
+        statusHtml = `<span class="status-badge status-low"><i class="ti ti-alert-triangle"></i> Bajo</span>`;
+        alertas++;
+      } else {
+        statusHtml = `<span class="status-badge status-ok"><i class="ti ti-circle-check"></i> Óptimo</span>`;
+      }
 
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:'Space Grotesk', sans-serif; font-weight:600;">${item.sku}</td>
+        <td>${item.name}</td>
+        <td style="font-weight:700; color:var(--accent);">${item.size}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td style="font-weight:700;">${item.stock} uds</td>
+        <td>${statusHtml}</td>
+        <td>
+          <button class="action-btn" onclick="ajustarStock(${item.id})"><i class="ti ti-edit"></i> Ajustar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('invValorTotal').textContent = '$' + valorTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    document.getElementById('invAlertas').textContent = alertas + ' SKUs críticos';
+    document.getElementById('supStockTotal').textContent = unidadesTotales + ' Uds';
+  }
+
+  function ajustarStock(id) {
+    const item = inventarioCentral.find(i => i.id === id);
+    if(item) {
+      let nuevoStock = prompt(`Ajustar stock actual para ${item.name} (SKU: ${item.sku}):`, item.stock);
+      if(nuevoStock !== null && !isNaN(nuevoStock) && nuevoStock >= 0) {
+        item.stock = parseInt(nuevoStock);
+        renderInventario(); // Actualiza vista inventario
+        renderCatalog();    // Actualiza vista POS
+      }
+    }
+  }
+
+  function actualizarMetricasSupervisor() {
+    let unidadesTotales = inventarioCentral.reduce((acc, item) => acc + item.stock, 0);
+    document.getElementById('supStockTotal').textContent = unidadesTotales + ' Uds';
+    document.getElementById('supIngresos').textContent = '$' + ingresosDiaTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+  }
+
+  // --- MÓDULO: POS (Caja) ---
   function renderCatalog() {
     const grid = document.getElementById('catalogGrid');
     if(!grid) return;
     grid.innerHTML = '';
-    productosCatalogo.forEach(prod => {
+    inventarioCentral.forEach(prod => {
+      const agotado = prod.stock <= 0;
       const tile = document.createElement('button');
-      tile.className = 'product-tile';
+      tile.className = `product-tile ${agotado ? 'disabled' : ''}`;
       tile.innerHTML = `
-        <div class="product-name">${prod.name}</div>
+        <div>
+          <div class="product-name">${prod.name} (${prod.size})</div>
+          <div class="product-stock"><i class="ti ti-box"></i> Disp: ${prod.stock}</div>
+        </div>
         <div class="product-price">$${prod.price.toFixed(2)}</div>
       `;
-      tile.onclick = () => agregarAlCarrito(prod);
+      if(!agotado) {
+        tile.onclick = () => agregarAlCarrito(prod);
+      }
       grid.appendChild(tile);
     });
   }
 
   function agregarAlCarrito(prod) {
     const existente = carrito.find(item => item.id === prod.id);
+    const qtyActual = existente ? existente.qty : 0;
+    
+    if(qtyActual + 1 > prod.stock) {
+      alert(`No puedes agregar más. Stock máximo de ${prod.name} es ${prod.stock}.`);
+      return;
+    }
+
     if(existente) {
       existente.qty += 1;
     } else {
@@ -425,10 +456,16 @@
   }
 
   function cambiarQty(id, delta) {
-    const item = carrito.find(i => i.id === id);
-    if(item) {
-      item.qty += delta;
-      if(item.qty <= 0) {
+    const itemCart = carrito.find(i => i.id === id);
+    const prodInventario = inventarioCentral.find(i => i.id === id);
+    
+    if(itemCart) {
+      if(delta > 0 && itemCart.qty + delta > prodInventario.stock) {
+        alert('Stock insuficiente en inventario.');
+        return;
+      }
+      itemCart.qty += delta;
+      if(itemCart.qty <= 0) {
         carrito = carrito.filter(i => i.id !== id);
       }
     }
@@ -457,7 +494,7 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${item.name}</td>
+        <td>${item.name} (${item.size})</td>
         <td>
           <button onclick="cambiarQty(${item.id}, -1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">-</button>
           <span style="margin:0 4px;">${item.qty}</span>
@@ -475,170 +512,77 @@
 
   function procesarCobro() {
     if(carrito.length === 0) {
-      alert('El carrito está vacío. Agregue al menos una prenda para cobrar.');
+      alert('El carrito está vacío.');
       return;
     }
-    let totalVenta = carrito.reduce((acc, i) => acc + (i.price * i.qty), 0);
+    let totalVenta = 0;
+    
+    // Descontar del inventario central
+    carrito.forEach(itemCart => {
+      totalVenta += (itemCart.price * itemCart.qty);
+      let prod = inventarioCentral.find(i => i.id === itemCart.id);
+      if(prod) prod.stock -= itemCart.qty;
+    });
+
     ingresosDiaTotal += totalVenta;
-    document.getElementById('supIngresos').textContent = '$' + ingresosDiaTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
     
     alert('¡Venta cobrada con éxito! Total registrado: $' + totalVenta.toFixed(2));
     carrito = [];
+    
+    // Actualizar todas las vistas
     renderCarrito();
+    renderCatalog();
+    renderInventario();
+    actualizarMetricasSupervisor();
   }
 
-
-  /* --- CALCULADORA TEXTIL --- */
-  let tasaBCV = null;
-  let accIdCounter = 2;
-
+  // --- MÓDULO: TASA BCV & CALCULADORA ---
   async function fetchBCV() {
-    const badge = document.getElementById('bcvBadge');
     const txt = document.getElementById('bcvText');
-    if (!badge || !txt) return;
-    badge.className = 'bcv-badge loading';
+    if (!txt) return;
     txt.textContent = 'Consultando BCV...';
-    
     try {
       const res = await fetch('https://bcv.today/api/v1/rate.json', { cache: 'no-cache' });
-      if (!res.ok) throw new Error('http ' + res.status);
+      if (!res.ok) throw new Error('error http');
       const data = await res.json();
       const rate = data?.usd?.rate ?? data?.USD?.rate ?? data?.rate ?? null;
-      if (!rate || isNaN(rate)) throw new Error('formato inesperado');
-      
+      if (!rate) throw new Error('error formato');
       tasaBCV = parseFloat(rate);
-      const fecha = data?.usd?.date ?? data?.USD?.date ?? '';
-      
-      localStorage.setItem('tasaBCV_cache', tasaBCV);
-      localStorage.setItem('tasaBCV_fecha', fecha);
-      
-      badge.className = 'bcv-badge';
-      txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> / $1';
-      document.getElementById('tasaRef').textContent = 'BCV oficial' + (fecha ? ' · ' + fecha : '');
-      calcular();
-      renderCarrito();
+      txt.innerHTML = `<strong>Bs ${tasaBCV.toFixed(2)}</strong> / $1`;
+      calcular(); renderCarrito();
     } catch(e) {
-      const tasaGuardada = localStorage.getItem('tasaBCV_cache');
-      const fechaGuardada = localStorage.getItem('tasaBCV_fecha');
-      
-      if (tasaGuardada) {
-        tasaBCV = parseFloat(tasaGuardada);
-        badge.className = 'bcv-badge';
-        txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> <small>(Guardada)</small>';
-        document.getElementById('tasaRef').textContent = 'Última tasa' + (fechaGuardada ? ' · ' + fechaGuardada : '');
-        calcular();
-        renderCarrito();
-      } else {
-        forzarErrorTasa();
-      }
+      txt.innerHTML = 'Sin red — <u onclick="pedirTasaManual()">Fijar manual</u>';
     }
-  }
-
-  function forzarErrorTasa() {
-    const badge = document.getElementById('bcvBadge');
-    const txt = document.getElementById('bcvText');
-    if (!badge || !txt) return;
-    badge.className = 'bcv-badge error';
-    txt.innerHTML = 'Sin conexión — <u>Ingresar tasa</u>';
-    document.getElementById('tasaRef').textContent = 'tasa no disponible (clic para fijar)';
-    tasaBCV = null;
-    calcular();
   }
 
   function pedirTasaManual() {
-    let inputVal = prompt('Ingrese la tasa actual del dólar (Ej: 36.50):', tasaBCV || '');
-    if (inputVal !== null) {
-      let nuevaTasa = parseFloat(inputVal.replace(',', '.'));
-      if (!isNaN(nuevaTasa) && nuevaTasa > 0) {
-        tasaBCV = nuevaTasa;
-        localStorage.setItem('tasaBCV_cache', tasaBCV);
-        localStorage.setItem('tasaBCV_fecha', 'Manual');
-        
-        const badge = document.getElementById('bcvBadge');
-        const txt = document.getElementById('bcvText');
-        badge.className = 'bcv-badge';
-        txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> <small>(Manual)</small>';
-        document.getElementById('tasaRef').textContent = 'Tasa fijada manualmente';
-        calcular();
-        renderCarrito();
-      } else {
-        alert('Por favor ingrese un valor numérico válido.');
-      }
+    let inputVal = prompt('Ingrese tasa del dólar:', tasaBCV || '');
+    if (inputVal && !isNaN(parseFloat(inputVal.replace(',', '.')))) {
+      tasaBCV = parseFloat(inputVal.replace(',', '.'));
+      document.getElementById('bcvText').innerHTML = `<strong>Bs ${tasaBCV.toFixed(2)}</strong> (Manual)`;
+      calcular(); renderCarrito();
     }
-  }
-
-  function getAccesoriosTotal() {
-    let t = 0;
-    document.querySelectorAll('#accesoriosList .acc-item').forEach(row => {
-      t += (parseFloat(row.querySelector('.acc-qty').value) || 0) *
-           (parseFloat(row.querySelector('.acc-price').value) || 0);
-    });
-    return t;
   }
 
   function calcular() {
     const metrosEl = document.getElementById('telaMetros');
     if (!metrosEl) return;
     const metros = parseFloat(metrosEl.value) || 0;
-    const pTela  = parseFloat(document.getElementById('telaPrecio').value) || 0;
-    const costTela = metros * pTela;
-    const costAcc  = getAccesoriosTotal();
+    const pTela = parseFloat(document.getElementById('telaPrecio').value) || 0;
     const costCost = parseFloat(document.getElementById('costurera').value) || 0;
-    const pct = parseFloat(document.getElementById('ganancia').value) || 0;
-    const base = costTela + costAcc + costCost;
-    const ganancia = base * (pct / 100);
+    
+    // Costo Base simplificado
+    const base = (metros * pTela) + costCost + 1.10; // 1.10 estimado de avíos
+    const ganancia = base * 0.50; // Fijo 50% para el ejemplo visual
     const precioUSD = base + ganancia;
     
     document.getElementById('resUSD').textContent = '$' + precioUSD.toFixed(2);
-    document.getElementById('resBS').textContent = tasaBCV
-      ? 'Bs ' + Math.round(precioUSD * tasaBCV).toLocaleString('es-VE')
-      : 'Bs —';
-    document.getElementById('breakdown').innerHTML =
-      '<div class="br-row"><span>Tela (' + metros + 'm × $' + pTela.toFixed(2) + ')</span><span>$' + costTela.toFixed(2) + '</span></div>' +
-      '<div class="br-row"><span>Accesorios y Avíos</span><span>$' + costAcc.toFixed(2) + '</span></div>' +
-      '<div class="br-row"><span>Confección (Costurera)</span><span>$' + costCost.toFixed(2) + '</span></div>' +
-      '<div class="br-row subtotal"><span>Costo Total de Producción</span><span>$' + base.toFixed(2) + '</span></div>' +
-      '<div class="br-row ganancia-line"><span>Ganancia (' + pct + '%)</span><span>+$' + ganancia.toFixed(2) + '</span></div>' +
-      '<div class="br-row total"><span>Precio de Venta Sugerido</span><span>$' + precioUSD.toFixed(2) + '</span></div>';
+    document.getElementById('resBS').textContent = tasaBCV ? 'Bs ' + Math.round(precioUSD * tasaBCV).toLocaleString('es-VE') : 'Bs —';
   }
 
-  function removeAcc(id) {
-    const el = document.querySelector('[data-id="' + id + '"]');
-    if (el) { el.remove(); calcular(); }
-  }
-
-  function addAcc() {
-    const nameInput = document.getElementById('newAccName');
-    const name = nameInput.value.trim();
-    if (!name) {
-      nameInput.style.borderColor = 'var(--danger)';
-      nameInput.focus();
-      return;
-    }
-    nameInput.style.borderColor = '';
-    const qty   = parseFloat(document.getElementById('newAccQty').value) || 1;
-    const price = parseFloat(document.getElementById('newAccPrice').value) || 0;
-    const id = accIdCounter++;
-    const div = document.createElement('div');
-    div.className = 'acc-item'; div.dataset.id = id;
-    div.innerHTML =
-      '<span class="acc-name">' + name + '</span>' +
-      '<input type="number" class="acc-input acc-qty" value="' + qty + '" min="0" step="1" oninput="calcular()">' +
-      '<input type="number" class="acc-input acc-price" value="' + price.toFixed(2) + '" min="0" step="0.1" oninput="calcular()">' +
-      '<button class="remove-btn" onclick="removeAcc(' + id + ')"><i class="ti ti-x"></i></button>';
-    document.getElementById('accesoriosList').appendChild(div);
-    nameInput.value = '';
-    document.getElementById('newAccQty').value = '1';
-    document.getElementById('newAccPrice').value = '0';
-    calcular();
-  }
-
-  document.addEventListener('input', (e) => {
-    if (e.target.matches('input[type=number]')) calcular();
-  });
-
-  // Inicializar
+  // --- INICIALIZACIÓN ---
   fetchBCV();
+  renderInventario();
   renderCatalog();
 </script>
 </body>
