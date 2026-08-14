@@ -21,105 +21,145 @@
     --radius: 12px;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
   body {
     font-family: 'Inter', sans-serif;
     background: var(--bg-main);
     color: var(--text-main);
-    min-height: 100vh;
+    margin: 0;
+    overflow: hidden; /* Evita el scroll en toda la página, se hará en el main */
+  }
+
+  /* --- LAYOUT PRINCIPAL (DASHBOARD) --- */
+  .app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* BARRA LATERAL (SIDEBAR) */
+  .sidebar {
+    width: 260px;
+    background: var(--bg-card);
+    border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    padding-bottom: 2rem;
+    z-index: 10;
   }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    background: var(--bg-card);
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .app-logo {
+
+  .sidebar-logo {
+    padding: 1.5rem;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     letter-spacing: 0.1em;
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: var(--text-main);
-    text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
   }
-  .role-selector {
+
+  .sidebar-user {
+    padding: 1.5rem;
     display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
   }
-  .role-btn {
-    background: var(--bg-main);
-    border: 1px solid var(--border-color);
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--text-muted);
-    padding: 0.4rem 0.8rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 6px;
+  }
+
+  .user-info .name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+  .user-info .role { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;}
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    overflow-y: auto;
+  }
+
+  .nav-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    gap: 5px;
-  }
-  .role-btn.active {
-    background: var(--text-main);
-    color: var(--bg-main);
-    border-color: var(--text-main);
-  }
-  main {
-    flex: 1;
-    padding: 1.5rem;
-    max-width: 1100px;
-    margin: 0 auto;
+    gap: 12px;
+    text-align: left;
     width: 100%;
   }
-  .panel { display: none; }
-  .panel.active { display: block; }
+
+  .nav-btn i { font-size: 1.1rem; }
+  .nav-btn:hover { background: var(--bg-main); color: var(--text-main); }
+  
+  .nav-btn.active {
+    background: var(--text-main);
+    color: var(--bg-main);
+    font-weight: 600;
+  }
+
+  .sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.8125rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--text-main); }
+
+  /* ÁREA DE CONTENIDO PRINCIPAL */
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2.5rem;
+    background: var(--bg-main);
+  }
+
+  .panel { display: none; max-width: 1100px; margin: 0 auto; }
+  .panel.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   
   .panel-title {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
-  .grid-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  .metric-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    padding: 1.25rem;
-    border-radius: var(--radius);
-  }
-  .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-  .metric-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; }
-  
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.8125rem;
-    margin-bottom: 1rem;
-  }
-  .back-link:hover { color: var(--text-main); }
 
-  /* Tablas compartidas (Inventario y POS) */
+  /* --- COMPONENTES COMPARTIDOS --- */
+  .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+  .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius); }
+  .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .metric-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700; }
+  
   .data-table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); overflow-x: auto; margin-bottom: 1.5rem; }
   .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
   .data-table th { background: var(--bg-main); color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem; border-bottom: 1px solid var(--border-color); }
@@ -135,9 +175,8 @@
   .action-btn { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
   .action-btn:hover { background: var(--text-main); color: var(--bg-main); }
 
-  /* POS Estilos */
+  /* --- POS Estilos --- */
   .pos-container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; }
-  @media(max-width: 768px) { .pos-container { grid-template-columns: 1fr; } }
   .pos-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; }
   .pos-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; max-height: 450px; overflow-y: auto; padding-right: 4px; }
   .product-tile { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 85px; }
@@ -158,104 +197,129 @@
   .btn-cobrar:hover { opacity: 0.9; }
   .btn-eliminar-item { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
 
-  /* Estilos compartidos de Calculadora (Reducidos por legibilidad) */
-  .calc-container { max-width: 100%; margin: 0 auto; }
-  .calc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+  /* --- Calculadora Estilos --- */
+  .calc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
   .bcv-badge { display: flex; align-items: center; gap: 6px; background: rgba(168,212,176,0.12); border: 0.5px solid rgba(168,212,176,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--success); transition: all .3s; cursor: pointer; }
-  .section-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: .9rem; }
-  .section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; display: flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; }
-  .field-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-bottom: .55rem; }
+  .section-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+  .section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; }
+  .field-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-bottom: .75rem; }
   .field-right { display: flex; align-items: center; gap: 6px; }
-  .field-right input { font-size: 14px; padding: 6px 10px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); outline: none; text-align: right; width: 110px; }
+  .field-right input { font-size: 14px; padding: 8px 10px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); outline: none; text-align: right; width: 110px; }
   .currency-tag { font-size: 12px; color: var(--text-muted); min-width: 22px; }
-  .result-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; margin-bottom: .5rem; }
-  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: .75rem; }
-  .metric { background: var(--bg-main); border-radius: 6px; padding: .75rem 1rem; border: 0.5px solid var(--border-color); }
-  .metric-val { font-size: 22px; font-weight: 700; color: var(--text-main); line-height: 1.1; font-family: 'Space Grotesk', sans-serif; }
-  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
-  .refresh-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 12px; text-decoration: underline; padding: 0; }
+  .result-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.5rem; margin-bottom: .5rem; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .metric { background: var(--bg-main); border-radius: 6px; padding: 1rem; border: 0.5px solid var(--border-color); }
+  .metric-val { font-size: 24px; font-weight: 700; color: var(--text-main); line-height: 1.1; font-family: 'Space Grotesk', sans-serif; }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* RESPONSIVE */
+  @media(max-width: 900px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
+    .sidebar-user { display: none; }
+    .sidebar-nav { flex-direction: row; overflow-x: auto; padding: 1rem; gap: 0.5rem; }
+    .nav-btn { white-space: nowrap; width: auto; }
+    .sidebar-footer { display: none; }
+    .main-content { padding: 1.5rem; }
+    .pos-container { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <a href="index.html" class="app-logo">
-    <i class="ti ti-shield-lock" style="font-size: 1.25rem;"></i> VILLALOBOS PORTAL
-  </a>
-  <div class="role-selector">
-    <button class="role-btn active" onclick="switchRole('supervisor')"><i class="ti ti-shield"></i> Panel Supervisor</button>
-    <button class="role-btn" onclick="switchRole('inventario')"><i class="ti ti-packages"></i> Inventario</button>
-    <button class="role-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora</button>
-    <button class="role-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> POS (Caja)</button>
-  </div>
-</header>
+<div class="app-container">
 
-<main>
-  <a href="index.html" class="back-link"><i class="ti ti-arrow-left"></i> Volver a la Landing Page</a>
-
-  <!-- PANEL SUPERVISOR -->
-  <div id="panel-supervisor" class="panel active">
-    <div class="panel-title"><i class="ti ti-chart-pie"></i> Panel de Control Global y Finanzas</div>
-    <div class="grid-metrics">
-      <div class="metric-card">
-        <div class="metric-label">Ingresos Totales (Día)</div>
-        <div class="metric-value" id="supIngresos">$18,450.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Márgenes Textil</div>
-        <div class="metric-value" style="color: var(--success);">Óptimos (48%)</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Total Unidades en Stock</div>
-        <div class="metric-value" id="supStockTotal">142 Uds</div>
-      </div>
-    </div>
-    <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Área exclusiva para la gerencia. Aquí se supervisan los costos, márgenes globales y reportes de ventas generados desde caja de forma independiente.</p>
-  </div>
-
-  <!-- PANEL DE INVENTARIO -->
-  <div id="panel-inventario" class="panel">
-    <div class="calc-header">
-      <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-box"></i> Gestión de Inventario Central</div>
-      <button class="action-btn" onclick="alert('Función de agregar SKU en desarrollo')"><i class="ti ti-plus"></i> Nuevo Producto</button>
+  <!-- BARRA LATERAL (SIDEBAR) -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <i class="ti ti-shield-lock"></i> VILLALOBOS
     </div>
     
-    <div class="grid-metrics">
-      <div class="metric-card">
-        <div class="metric-label">Valor del Inventario</div>
-        <div class="metric-value" id="invValorTotal">$0.00</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Alertas de Quiebre</div>
-        <div class="metric-value" style="color: var(--warning);" id="invAlertas">0 SKUs</div>
+    <div class="sidebar-user">
+      <div class="avatar"><i class="ti ti-user"></i></div>
+      <div class="user-info">
+        <div class="name">Administración</div>
+        <div class="role">Sesión Activa</div>
       </div>
     </div>
 
-    <div class="data-table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>SKU</th>
-            <th>Producto</th>
-            <th>Talla</th>
-            <th>Precio (USD)</th>
-            <th>Stock Actual</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="inventoryTableBody">
-          <!-- Se llena por JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <nav class="sidebar-nav">
+      <button class="nav-btn active" onclick="switchRole('supervisor')"><i class="ti ti-chart-pie"></i> Dashboard</button>
+      <button class="nav-btn" onclick="switchRole('inventario')"><i class="ti ti-box"></i> Inventario</button>
+      <button class="nav-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora Textil</button>
+      <button class="nav-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> Terminal POS</button>
+    </nav>
 
-  <!-- CALCULADORA DE PRENDAS TEXTIL (Versión simplificada visualmente en HTML para espacio) -->
-  <div id="panel-calculadora" class="panel">
-    <div class="calc-container">
+    <div class="sidebar-footer">
+      <a href="index.html" class="back-link"><i class="ti ti-arrow-left"></i> Volver a Landing</a>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="main-content">
+    
+    <!-- PANEL SUPERVISOR -->
+    <div id="panel-supervisor" class="panel active">
+      <div class="panel-title">Resumen Financiero</div>
+      <div class="grid-metrics">
+        <div class="metric-card">
+          <div class="metric-label">Ingresos Totales (Día)</div>
+          <div class="metric-value" id="supIngresos">$18,450.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Márgenes Textil</div>
+          <div class="metric-value" style="color: var(--success);">Óptimos (48%)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Unidades en Stock</div>
+          <div class="metric-value" id="supStockTotal">142 Uds</div>
+        </div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6; max-width: 800px;">Área exclusiva para la gerencia. Aquí se supervisan los costos de producción, los márgenes de ganancia global, reportes de ventas y la auditoría de personal de manera totalmente independiente de la caja operativa.</p>
+    </div>
+
+    <!-- PANEL DE INVENTARIO -->
+    <div id="panel-inventario" class="panel">
       <div class="calc-header">
-        <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-scissors"></i> Calculadora de Costos y Precios</div>
+        <div class="panel-title" style="margin-bottom:0;">Gestión de Inventario</div>
+        <button class="action-btn" onclick="alert('Función de agregar SKU en desarrollo')"><i class="ti ti-plus"></i> Nuevo Producto</button>
+      </div>
+      
+      <div class="grid-metrics">
+        <div class="metric-card">
+          <div class="metric-label">Valor del Inventario</div>
+          <div class="metric-value" id="invValorTotal">$0.00</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Alertas de Quiebre</div>
+          <div class="metric-value" style="color: var(--warning);" id="invAlertas">0 SKUs</div>
+        </div>
+      </div>
+
+      <div class="data-table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Producto</th>
+              <th>Talla</th>
+              <th>Precio (USD)</th>
+              <th>Stock Actual</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            <!-- Se llena por JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CALCULADORA DE PRENDAS TEXTIL -->
+    <div id="panel-calculadora" class="panel">
+      <div class="calc-header">
+        <div class="panel-title" style="margin-bottom:0;">Calculadora de Costos Textiles</div>
         <div class="bcv-badge" id="bcvBadge" onclick="pedirTasaManual()">
           <i class="ti ti-refresh" id="bcvIcon"></i> <span id="bcvText">Consultando BCV...</span>
         </div>
@@ -267,51 +331,52 @@
         <div class="field-row"><div class="field-label">Costo Costurera</div><div class="field-right"><input type="number" id="costurera" value="8" step="0.5" oninput="calcular()"><span class="currency-tag">$</span></div></div>
       </div>
       <div class="result-card">
-        <div class="result-label">Precio de Venta Sugerido (Ganancia incluida)</div>
+        <div class="result-label">Precio de Venta Sugerido (Con 50% de ganancia)</div>
         <div class="result-grid">
           <div class="metric"><div class="metric-label">Dólares</div><div class="metric-val accent" id="resUSD">$0.00</div></div>
           <div class="metric"><div class="metric-label">Bolívares (BCV)</div><div class="metric-val" id="resBS">Bs —</div></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- PANEL DE CAJA / POS -->
-  <div id="panel-operador" class="panel">
-    <div class="panel-title"><i class="ti ti-cash-register"></i> Terminal POS — Caja Rápida</div>
-    
-    <div class="pos-container">
-      <div class="pos-section">
-        <div class="section-title"><i class="ti ti-hanger"></i> Catálogo de Prendas (Toca para agregar)</div>
-        <div class="pos-catalog" id="catalogGrid">
-          <!-- Se llena por JS -->
-        </div>
-      </div>
-
-      <div class="pos-section" style="display:flex; flex-direction:column; justify-content:space-between;">
-        <div>
-          <div class="section-title"><i class="ti ti-receipt"></i> Ticket de Venta Actual</div>
-          <table class="cart-table">
-            <thead>
-              <tr><th>Prenda</th><th>Cant</th><th>Subtotal</th><th></th></tr>
-            </thead>
-            <tbody id="cartTableBody">
-              <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div>
-          <div class="cart-total-box">
-            <div class="cart-total-row"><span>Total Dólares:</span><strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong></div>
-            <div class="cart-total-row"><span>Total Bolívares:</span><strong id="cartTotalBS">Bs 0.00</strong></div>
+    <!-- PANEL DE CAJA / POS -->
+    <div id="panel-operador" class="panel">
+      <div class="panel-title">Terminal de Venta Rápida</div>
+      
+      <div class="pos-container">
+        <div class="pos-section">
+          <div class="section-title"><i class="ti ti-hanger"></i> Catálogo de Prendas (Toca para agregar)</div>
+          <div class="pos-catalog" id="catalogGrid">
+            <!-- Se llena por JS -->
           </div>
-          <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Procesar Venta</button>
+        </div>
+
+        <div class="pos-section" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div class="section-title"><i class="ti ti-receipt"></i> Ticket de Venta Actual</div>
+            <table class="cart-table">
+              <thead>
+                <tr><th>Prenda</th><th>Cant</th><th>Subtotal</th><th></th></tr>
+              </thead>
+              <tbody id="cartTableBody">
+                <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <div class="cart-total-box">
+              <div class="cart-total-row"><span>Total Dólares:</span><strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong></div>
+              <div class="cart-total-row"><span>Total Bolívares:</span><strong id="cartTotalBS">Bs 0.00</strong></div>
+            </div>
+            <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Procesar Venta</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</main>
+
+  </main>
+</div>
 
 <script>
   // --- BASE DE DATOS CENTRAL (Memoria) ---
@@ -330,23 +395,23 @@
 
   // --- CONTROL DE PANELES ---
   function switchRole(role) {
-    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     
     if(role === 'supervisor') {
-      document.querySelector('.role-btn:nth-child(1)').classList.add('active');
+      document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
       document.getElementById('panel-supervisor').classList.add('active');
       actualizarMetricasSupervisor();
     } else if(role === 'inventario') {
-      document.querySelector('.role-btn:nth-child(2)').classList.add('active');
+      document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
       document.getElementById('panel-inventario').classList.add('active');
       renderInventario();
     } else if(role === 'calculadora') {
-      document.querySelector('.role-btn:nth-child(3)').classList.add('active');
+      document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
       document.getElementById('panel-calculadora').classList.add('active');
       calcular();
     } else {
-      document.querySelector('.role-btn:nth-child(4)').classList.add('active');
+      document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
       document.getElementById('panel-operador').classList.add('active');
       renderCatalog();
     }
@@ -403,8 +468,8 @@
       let nuevoStock = prompt(`Ajustar stock actual para ${item.name} (SKU: ${item.sku}):`, item.stock);
       if(nuevoStock !== null && !isNaN(nuevoStock) && nuevoStock >= 0) {
         item.stock = parseInt(nuevoStock);
-        renderInventario(); // Actualiza vista inventario
-        renderCatalog();    // Actualiza vista POS
+        renderInventario(); 
+        renderCatalog();    
       }
     }
   }
@@ -443,7 +508,7 @@
     const qtyActual = existente ? existente.qty : 0;
     
     if(qtyActual + 1 > prod.stock) {
-      alert(`No puedes agregar más. Stock máximo de ${prod.name} es ${prod.stock}.`);
+      alert(`Stock insuficiente.`);
       return;
     }
 
@@ -460,10 +525,7 @@
     const prodInventario = inventarioCentral.find(i => i.id === id);
     
     if(itemCart) {
-      if(delta > 0 && itemCart.qty + delta > prodInventario.stock) {
-        alert('Stock insuficiente en inventario.');
-        return;
-      }
+      if(delta > 0 && itemCart.qty + delta > prodInventario.stock) return;
       itemCart.qty += delta;
       if(itemCart.qty <= 0) {
         carrito = carrito.filter(i => i.id !== id);
@@ -494,30 +556,26 @@
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${item.name} (${item.size})</td>
-        <td>
+        <td>${item.name} <span style="font-size:0.7rem;color:var(--accent);">(${item.size})</span></td>
+        <td style="white-space:nowrap;">
           <button onclick="cambiarQty(${item.id}, -1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">-</button>
           <span style="margin:0 4px;">${item.qty}</span>
           <button onclick="cambiarQty(${item.id}, 1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">+</button>
         </td>
-        <td>$${sub.toFixed(2)}</td>
+        <td style="font-weight:600;">$${sub.toFixed(2)}</td>
         <td><button class="btn-eliminar-item" onclick="cambiarQty(${item.id}, -999)"><i class="ti ti-trash"></i></button></td>
       `;
       tbody.appendChild(tr);
     });
 
     totalUSDEl.textContent = '$' + totalUSD.toFixed(2);
-    totalBSEl.textContent = tasaBCV ? 'Bs ' + Math.round(totalUSD * tasaBCV).toLocaleString('es-VE') : 'Bs — (Sin tasa)';
+    totalBSEl.textContent = tasaBCV ? 'Bs ' + Math.round(totalUSD * tasaBCV).toLocaleString('es-VE') : 'Bs —';
   }
 
   function procesarCobro() {
-    if(carrito.length === 0) {
-      alert('El carrito está vacío.');
-      return;
-    }
+    if(carrito.length === 0) return;
     let totalVenta = 0;
     
-    // Descontar del inventario central
     carrito.forEach(itemCart => {
       totalVenta += (itemCart.price * itemCart.qty);
       let prod = inventarioCentral.find(i => i.id === itemCart.id);
@@ -525,11 +583,9 @@
     });
 
     ingresosDiaTotal += totalVenta;
-    
-    alert('¡Venta cobrada con éxito! Total registrado: $' + totalVenta.toFixed(2));
+    alert('Venta Procesada: $' + totalVenta.toFixed(2));
     carrito = [];
     
-    // Actualizar todas las vistas
     renderCarrito();
     renderCatalog();
     renderInventario();
@@ -571,9 +627,8 @@
     const pTela = parseFloat(document.getElementById('telaPrecio').value) || 0;
     const costCost = parseFloat(document.getElementById('costurera').value) || 0;
     
-    // Costo Base simplificado
-    const base = (metros * pTela) + costCost + 1.10; // 1.10 estimado de avíos
-    const ganancia = base * 0.50; // Fijo 50% para el ejemplo visual
+    const base = (metros * pTela) + costCost + 1.10; 
+    const ganancia = base * 0.50; 
     const precioUSD = base + ganancia;
     
     document.getElementById('resUSD').textContent = '$' + precioUSD.toFixed(2);
