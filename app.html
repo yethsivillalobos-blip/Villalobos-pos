@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Sistema POS, SaaS & Calculadora</title>
+<title>VILLALOBOS — Sistema POS & Caja</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -78,7 +78,7 @@
   main {
     flex: 1;
     padding: 1.5rem;
-    max-width: 900px;
+    max-width: 1000px;
     margin: 0 auto;
     width: 100%;
   }
@@ -119,7 +119,29 @@
   }
   .back-link:hover { color: var(--text-main); }
 
-  /* Estilos de la calculadora textil incrustada */
+  /* POS Estilos */
+  .pos-container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; }
+  @media(max-width: 768px) { .pos-container { grid-template-columns: 1fr; } }
+  
+  .pos-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; }
+  .pos-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+  .product-tile { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; text-align: left; }
+  .product-tile:hover { border-color: var(--accent); background: var(--bg-card-hover); }
+  .product-name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem; }
+  .product-price { font-size: 0.8rem; color: var(--success); font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+  
+  .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+  .cart-table th { text-align: left; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
+  .cart-table td { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+  .cart-total-box { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+  .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.9rem; }
+  .cart-total-row.final { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
+  
+  .btn-cobrar { width: 100%; background: var(--success); color: #08090a; border: none; border-radius: 8px; padding: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; }
+  .btn-cobrar:hover { opacity: 0.9; }
+  .btn-eliminar-item { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
+
+  /* Calculadora Estilos */
   .calc-container { max-width: 100%; margin: 0 auto; }
   .calc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
   .bcv-badge { display: flex; align-items: center; gap: 6px; background: rgba(168,212,176,0.12); border: 0.5px solid rgba(168,212,176,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--success); transition: all .3s; cursor: pointer; }
@@ -165,7 +187,6 @@
   .br-row.ganancia-line { color: var(--success); }
   .br-row.total { font-weight: 700; color: var(--text-main); border-top: 0.5px solid var(--border-color); margin-top: 2px; padding-top: 6px; font-size: 14px; }
   .refresh-link { background: none; border: none; cursor: pointer; color: var(--accent); font-size: 12px; text-decoration: underline; padding: 0; }
-  @media(max-width: 500px) { .result-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -177,7 +198,7 @@
   <div class="role-selector">
     <button class="role-btn active" onclick="switchRole('supervisor')"><i class="ti ti-shield"></i> Panel Supervisor</button>
     <button class="role-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora Textil</button>
-    <button class="role-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> Panel de Caja</button>
+    <button class="role-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> Panel de Caja (POS)</button>
   </div>
 </header>
 
@@ -190,7 +211,7 @@
     <div class="grid-metrics">
       <div class="metric-card">
         <div class="metric-label">Ingresos Totales (Día)</div>
-        <div class="metric-value">$18,450.00</div>
+        <div class="metric-value" id="supIngresos">$18,450.00</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Márgenes y Costos Textil</div>
@@ -201,14 +222,14 @@
         <div class="metric-value">1,420 SKUs</div>
       </div>
     </div>
-    <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Área exclusiva para la gerencia. Aquí se supervisan los costos de producción, los márgenes de ganancia global, reportes de ventas y la auditoría de personal de manera totalmente independiente de la caja operativa.</p>
+    <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Área exclusiva para la gerencia. Aquí se supervisan los costos, márgenes globales y reportes de ventas generados desde caja de forma independiente.</p>
   </div>
 
   <!-- CALCULADORA DE PRENDAS TEXTIL -->
   <div id="panel-calculadora" class="panel">
     <div class="calc-container">
       <div class="calc-header">
-        <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-scissors"></i> Calculadora de Costos y Precios de Prendas</div>
+        <div class="panel-title" style="margin-bottom:0;"><i class="ti ti-scissors"></i> Calculadora de Costos y Precios</div>
         <div class="bcv-badge loading" id="bcvBadge" onclick="pedirTasaManual()" title="Haz clic para fijar la tasa manual si falla la red">
           <i class="ti ti-refresh" id="bcvIcon"></i>
           <span id="bcvText">Consultando BCV...</span>
@@ -243,25 +264,7 @@
             <span class="acc-name">Cierre</span>
             <input type="number" class="acc-input acc-qty" value="1" min="0" step="1" oninput="calcular()">
             <input type="number" class="acc-input acc-price" value="0.50" min="0" step="0.1" oninput="calcular()">
-            <button class="remove-btn" onclick="removeAcc(1)" aria-label="Eliminar"><i class="ti ti-x"></i></button>
-          </div>
-          <div class="acc-item" data-id="2">
-            <span class="acc-name">Botones</span>
-            <input type="number" class="acc-input acc-qty" value="6" min="0" step="1" oninput="calcular()">
-            <input type="number" class="acc-input acc-price" value="0.10" min="0" step="0.05" oninput="calcular()">
-            <button class="remove-btn" onclick="removeAcc(2)" aria-label="Eliminar"><i class="ti ti-x"></i></button>
-          </div>
-          <div class="acc-item" data-id="3">
-            <span class="acc-name">Logo / etiqueta</span>
-            <input type="number" class="acc-input acc-qty" value="1" min="0" step="1" oninput="calcular()">
-            <input type="number" class="acc-input acc-price" value="0.30" min="0" step="0.1" oninput="calcular()">
-            <button class="remove-btn" onclick="removeAcc(3)" aria-label="Eliminar"><i class="ti ti-x"></i></button>
-          </div>
-          <div class="acc-item" data-id="4">
-            <span class="acc-name">Bolsa de entrega</span>
-            <input type="number" class="acc-input acc-qty" value="1" min="0" step="1" oninput="calcular()">
-            <input type="number" class="acc-input acc-price" value="0.20" min="0" step="0.05" oninput="calcular()">
-            <button class="remove-btn" onclick="removeAcc(4)" aria-label="Eliminar"><i class="ti ti-x"></i></button>
+            <button class="remove-btn" onclick="removeAcc(1)"><i class="ti ti-x"></i></button>
           </div>
         </div>
         <div class="divider"></div>
@@ -311,27 +314,56 @@
         <div class="divider"></div>
         <div class="breakdown" id="breakdown"></div>
       </div>
-
-      <div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:1rem;">
-        Tasa BCV oficial / Manual · <button class="refresh-link" onclick="fetchBCV()">actualizar</button> · <button class="refresh-link" onclick="pedirTasaManual()">fijar tasa manual</button>
-      </div>
     </div>
   </div>
 
-  <!-- PANEL DE CAJA / OPERADOR -->
+  <!-- PANEL DE CAJA / POS -->
   <div id="panel-operador" class="panel">
-    <div class="panel-title"><i class="ti ti-cash-register"></i> Terminal de Venta Rápida (Caja)</div>
-    <div class="grid-metrics">
-      <div class="metric-card">
-        <div class="metric-label">Transacciones de Caja Hoy</div>
-        <div class="metric-value">37 Tickets</div>
+    <div class="panel-title"><i class="ti ti-cash-register"></i> Terminal POS — Caja Rápida</div>
+    
+    <div class="pos-container">
+      <!-- Catálogo para agregar a la venta -->
+      <div class="pos-section">
+        <div class="section-title"><i class="ti ti-hanger"></i> Catálogo de Prendas (Toca para agregar)</div>
+        <div class="pos-catalog" id="catalogGrid">
+          <!-- Se llena por JS -->
+        </div>
       </div>
-      <div class="metric-card">
-        <div class="metric-label">Efectivo en Caja</div>
-        <div class="metric-value">$3,220.00</div>
+
+      <!-- Carrito / Ticket actual -->
+      <div class="pos-section" style="display:flex; flex-direction:column; justify-content:space-between;">
+        <div>
+          <div class="section-title"><i class="ti ti-receipt"></i> Ticket de Venta Actual</div>
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th>Prenda</th>
+                <th>Cant</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="cartTableBody">
+              <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="cart-total-box">
+            <div class="cart-total-row">
+              <span>Total Dólares:</span>
+              <strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong>
+            </div>
+            <div class="cart-total-row">
+              <span>Total Bolívares (BCV):</span>
+              <strong id="cartTotalBS">Bs 0.00</strong>
+            </div>
+          </div>
+          <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Cobrar y Procesar Venta</button>
+        </div>
       </div>
     </div>
-    <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6;">Interfaz optimizada y veloz exclusivamente para facturación de prendas por talla y cobro directo, manteniendo los costos e información confidencial ocultos del operador.</p>
   </div>
 </main>
 
@@ -353,9 +385,112 @@
     }
   }
 
-  /* --- LÓGICA DE LA CALCULADORA TEXTIL --- */
+  /* --- SISTEMA POS / CAJA --- */
+  const productosCatalogo = [
+    { id: 1, name: 'Conjunto Seamless (M)', price: 25.00 },
+    { id: 2, name: 'Enterizo Ribbed (S)', price: 22.50 },
+    { id: 3, name: 'Leggings Compresión (L)', price: 18.00 },
+    { id: 4, name: 'Top Deportivo Dry-Fit (S)', price: 12.00 },
+    { id: 5, name: 'Short Antideslizante (M)', price: 15.00 },
+    { id: 6, name: 'Medias Grip Pilates (Única)', price: 5.00 }
+  ];
+
+  let carrito = [];
+  let ingresosDiaTotal = 18450.00;
+
+  function renderCatalog() {
+    const grid = document.getElementById('catalogGrid');
+    if(!grid) return;
+    grid.innerHTML = '';
+    productosCatalogo.forEach(prod => {
+      const tile = document.createElement('button');
+      tile.className = 'product-tile';
+      tile.innerHTML = `
+        <div class="product-name">${prod.name}</div>
+        <div class="product-price">$${prod.price.toFixed(2)}</div>
+      `;
+      tile.onclick = () => agregarAlCarrito(prod);
+      grid.appendChild(tile);
+    });
+  }
+
+  function agregarAlCarrito(prod) {
+    const existente = carrito.find(item => item.id === prod.id);
+    if(existente) {
+      existente.qty += 1;
+    } else {
+      carrito.push({ ...prod, qty: 1 });
+    }
+    renderCarrito();
+  }
+
+  function cambiarQty(id, delta) {
+    const item = carrito.find(i => i.id === id);
+    if(item) {
+      item.qty += delta;
+      if(item.qty <= 0) {
+        carrito = carrito.filter(i => i.id !== id);
+      }
+    }
+    renderCarrito();
+  }
+
+  function renderCarrito() {
+    const tbody = document.getElementById('cartTableBody');
+    const totalUSDEl = document.getElementById('cartTotalUSD');
+    const totalBSEl = document.getElementById('cartTotalBS');
+    if(!tbody) return;
+
+    if(carrito.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>`;
+      totalUSDEl.textContent = '$0.00';
+      totalBSEl.textContent = 'Bs 0.00';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    let totalUSD = 0;
+
+    carrito.forEach(item => {
+      let sub = item.price * item.qty;
+      totalUSD += sub;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td>
+          <button onclick="cambiarQty(${item.id}, -1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">-</button>
+          <span style="margin:0 4px;">${item.qty}</span>
+          <button onclick="cambiarQty(${item.id}, 1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">+</button>
+        </td>
+        <td>$${sub.toFixed(2)}</td>
+        <td><button class="btn-eliminar-item" onclick="cambiarQty(${item.id}, -999)"><i class="ti ti-trash"></i></button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    totalUSDEl.textContent = '$' + totalUSD.toFixed(2);
+    totalBSEl.textContent = tasaBCV ? 'Bs ' + Math.round(totalUSD * tasaBCV).toLocaleString('es-VE') : 'Bs — (Sin tasa)';
+  }
+
+  function procesarCobro() {
+    if(carrito.length === 0) {
+      alert('El carrito está vacío. Agregue al menos una prenda para cobrar.');
+      return;
+    }
+    let totalVenta = carrito.reduce((acc, i) => acc + (i.price * i.qty), 0);
+    ingresosDiaTotal += totalVenta;
+    document.getElementById('supIngresos').textContent = '$' + ingresosDiaTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+    
+    alert('¡Venta cobrada con éxito! Total registrado: $' + totalVenta.toFixed(2));
+    carrito = [];
+    renderCarrito();
+  }
+
+
+  /* --- CALCULADORA TEXTIL --- */
   let tasaBCV = null;
-  let accIdCounter = 5;
+  let accIdCounter = 2;
 
   async function fetchBCV() {
     const badge = document.getElementById('bcvBadge');
@@ -381,6 +516,7 @@
       txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> / $1';
       document.getElementById('tasaRef').textContent = 'BCV oficial' + (fecha ? ' · ' + fecha : '');
       calcular();
+      renderCarrito();
     } catch(e) {
       const tasaGuardada = localStorage.getItem('tasaBCV_cache');
       const fechaGuardada = localStorage.getItem('tasaBCV_fecha');
@@ -391,6 +527,7 @@
         txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> <small>(Guardada)</small>';
         document.getElementById('tasaRef').textContent = 'Última tasa' + (fechaGuardada ? ' · ' + fechaGuardada : '');
         calcular();
+        renderCarrito();
       } else {
         forzarErrorTasa();
       }
@@ -423,6 +560,7 @@
         txt.innerHTML = '<strong>Bs ' + tasaBCV.toFixed(2) + '</strong> <small>(Manual)</small>';
         document.getElementById('tasaRef').textContent = 'Tasa fijada manualmente';
         calcular();
+        renderCarrito();
       } else {
         alert('Por favor ingrese un valor numérico válido.');
       }
@@ -487,7 +625,7 @@
       '<span class="acc-name">' + name + '</span>' +
       '<input type="number" class="acc-input acc-qty" value="' + qty + '" min="0" step="1" oninput="calcular()">' +
       '<input type="number" class="acc-input acc-price" value="' + price.toFixed(2) + '" min="0" step="0.1" oninput="calcular()">' +
-      '<button class="remove-btn" onclick="removeAcc(' + id + ')" aria-label="Eliminar"><i class="ti ti-x"></i></button>';
+      '<button class="remove-btn" onclick="removeAcc(' + id + ')"><i class="ti ti-x"></i></button>';
     document.getElementById('accesoriosList').appendChild(div);
     nameInput.value = '';
     document.getElementById('newAccQty').value = '1';
@@ -499,8 +637,9 @@
     if (e.target.matches('input[type=number]')) calcular();
   });
 
-  // Inicializar tasa al cargar la página
+  // Inicializar
   fetchBCV();
+  renderCatalog();
 </script>
 </body>
 </html>
