@@ -6,6 +6,7 @@
 <title>VILLALOBOS — Iniciar Sesión</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="./manifest.json" />
 <style>
   :root {
     --bg-main: #08090a;
@@ -17,13 +18,7 @@
     --radius: 16px;
     --transition: 0.3s ease;
   }
-
-  *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Inter', sans-serif;
     background: var(--bg-main);
@@ -32,23 +27,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Fondo general sutil */
     background-image: radial-gradient(circle at 50% 50%, #1a1d22 0%, #08090a 100%);
   }
-
-  /* --- CONTENEDOR PRINCIPAL --- */
   .login-wrapper {
     display: flex;
     width: 1000px;
     height: 600px;
     background: var(--bg-card);
     border-radius: 24px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
     overflow: hidden;
     position: relative;
   }
-
-  /* --- MITAD IZQUIERDA: FORMULARIO --- */
   .login-form-container {
     width: 45%;
     padding: 4rem;
@@ -59,7 +49,6 @@
     z-index: 2;
     background: var(--bg-card);
   }
-
   .brand-logo {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1.25rem;
@@ -72,231 +61,99 @@
     margin-bottom: 3rem;
     text-decoration: none;
   }
-
-  .login-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-
-  .login-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    margin-bottom: 2rem;
-  }
-
-  .input-group {
-    margin-bottom: 1.25rem;
-    position: relative;
-  }
-
-  .input-label {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
+  .login-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .login-subtitle { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem; }
+  .input-group { margin-bottom: 1.25rem; position: relative; }
+  .input-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
   .input-field {
-    width: 100%;
-    background: var(--bg-main);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0.875rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    outline: none;
-    transition: var(--transition);
+    width: 100%; background: var(--bg-main); border: 1px solid var(--border-color);
+    color: var(--text-main); padding: 0.875rem 1rem; border-radius: 8px;
+    font-size: 0.875rem; outline: none; transition: var(--transition); font-family: 'Inter', sans-serif;
   }
-
-  .input-field:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(184, 192, 204, 0.1);
-  }
-
+  .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,192,204,0.1); }
   .password-toggle {
-    position: absolute;
-    right: 1rem;
-    top: 2.1rem;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: color var(--transition);
+    position: absolute; right: 1rem; top: 2.1rem; background: none; border: none;
+    color: var(--text-muted); cursor: pointer; font-size: 1.1rem; transition: color var(--transition);
   }
-
-  .password-toggle:hover {
-    color: var(--text-main);
-  }
-
+  .password-toggle:hover { color: var(--text-main); }
   .forgot-password {
-    display: block;
-    text-align: right;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    margin-bottom: 2rem;
-    margin-top: -0.5rem;
-    transition: color var(--transition);
+    display: block; text-align: right; font-size: 0.75rem; color: var(--text-muted);
+    text-decoration: none; margin-bottom: 2rem; margin-top: -0.5rem; transition: color var(--transition);
   }
-
-  .forgot-password:hover {
-    color: var(--text-main);
-  }
-
+  .forgot-password:hover { color: var(--text-main); }
   .btn-submit {
-    width: 100%;
-    background: var(--text-main);
-    color: var(--bg-main);
-    border: none;
-    padding: 0.875rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
+    width: 100%; background: var(--text-main); color: var(--bg-main); border: none;
+    padding: 0.875rem; border-radius: 8px; font-weight: 600; font-size: 0.9375rem;
+    cursor: pointer; transition: var(--transition); display: flex; justify-content: center;
+    align-items: center; gap: 0.5rem; font-family: 'Inter', sans-serif;
   }
-
-  .btn-submit:hover {
-    background: var(--accent);
-    transform: translateY(-1px);
-  }
-
-  /* --- MITAD DERECHA: IMAGEN CON RECORTE TIPO PAPEL --- */
+  .btn-submit:hover { background: var(--accent); transform: translateY(-1px); }
   .login-visual {
-    width: 55%;
-    position: relative;
-    /* Aquí puedes colocar una imagen corporativa, textura oscura o lobo abstracto */
+    width: 55%; position: relative;
     background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
   }
-
-  /* El efecto de corte con curva elegante (remplaza las hojas de la imagen base por algo corporativo) */
   .login-visual::before {
-    content: '';
-    position: absolute;
-    left: -1px;
-    top: 0;
-    bottom: 0;
-    width: 120px;
-    /* SVG generado en línea para crear el efecto de corte/ola oscura sobre la imagen */
+    content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 120px;
     background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C80,250 100,500 50,750 C10,900 0,1000 0,1000 L0,0 Z" fill="%23111316"/></svg>') no-repeat center left / 100% 100%;
-    z-index: 1;
-    filter: drop-shadow(-10px 0 15px rgba(0,0,0,0.8));
+    z-index: 1; filter: drop-shadow(-10px 0 15px rgba(0,0,0,0.8));
   }
-
-  .login-visual-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, rgba(17, 19, 22, 0.4), rgba(8, 9, 10, 0.8));
-    z-index: 0;
-  }
-
-  /* --- RESPONSIVE MOBILE (GLASSMORPHISM) --- */
+  .login-visual-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,19,22,0.4), rgba(8,9,10,0.8)); z-index: 0; }
+  .error-msg { color: #ff6b6b; font-size: 0.8rem; margin-top: 0.75rem; text-align: center; display: none; }
   @media (max-width: 850px) {
-    body {
-      background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop') center/cover no-repeat;
-    }
-
-    /* Oscurecemos el fondo en móvil para que resalte el panel */
-    body::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(8, 9, 10, 0.6);
-      z-index: 0;
-    }
-
-    .login-wrapper {
-      width: 90%;
-      max-width: 400px;
-      height: auto;
-      background: transparent;
-      box-shadow: none;
-      z-index: 1;
-    }
-
-    .login-visual {
-      display: none; /* Ocultamos la imagen lateral en móvil */
-    }
-
+    body { background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop') center/cover no-repeat; }
+    body::before { content: ''; position: absolute; inset: 0; background: rgba(8,9,10,0.6); z-index: 0; }
+    .login-wrapper { width: 90%; max-width: 400px; height: auto; background: transparent; box-shadow: none; z-index: 1; }
+    .login-visual { display: none; }
     .login-form-container {
-      width: 100%;
-      padding: 3rem 2rem;
-      /* EFECTO GLASSMORPHISM EXACTO AL DE LA IMAGEN MÓVIL */
-      background: rgba(17, 19, 22, 0.65);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      width: 100%; padding: 3rem 2rem;
+      background: rgba(17,19,22,0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
   }
 </style>
 </head>
 <body>
-
   <div class="login-wrapper">
-    <!-- Panel del Formulario -->
     <div class="login-form-container">
       <a href="index.html" class="brand-logo">
         <i class="ti ti-shield-lock" style="font-size: 1.5rem;"></i> VILLALOBOS
       </a>
-
       <h1 class="login-title">Ingresar</h1>
       <p class="login-subtitle">Accede al panel de control y punto de venta.</p>
-
-      <form action="app.html" method="GET">
-        <div class="input-group">
-          <label class="input-label">Usuario o Correo</label>
-          <input type="text" class="input-field" placeholder="operador@villalobos.com" required>
-        </div>
-
-        <div class="input-group">
-          <label class="input-label">Contraseña</label>
-          <input type="password" class="input-field" id="pwd" placeholder="••••••••" required>
-          <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
-            <i class="ti ti-eye" id="eye-icon"></i>
-          </button>
-        </div>
-
-        <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
-
-        <button type="submit" class="btn-submit">
-          Entrar al Sistema <i class="ti ti-arrow-right"></i>
+      <div class="input-group">
+        <label class="input-label">Usuario</label>
+        <input type="text" class="input-field" id="username" placeholder="operador@villalobos.com">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Contraseña</label>
+        <input type="password" class="input-field" id="pwd" placeholder="••••••••">
+        <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
+          <i class="ti ti-eye" id="eye-icon"></i>
         </button>
-      </form>
+      </div>
+      <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+      <button class="btn-submit" onclick="doLogin()">
+        Entrar al Sistema <i class="ti ti-arrow-right"></i>
+      </button>
+      <p class="error-msg" id="error-msg">Usuario o contraseña incorrectos.</p>
     </div>
-
-    <!-- Panel Visual (Solo Desktop) -->
-    <div class="login-visual">
-      <div class="login-visual-overlay"></div>
-    </div>
+    <div class="login-visual"><div class="login-visual-overlay"></div></div>
   </div>
-
   <script>
     function togglePassword() {
-      const pwdInput = document.getElementById('pwd');
-      const eyeIcon = document.getElementById('eye-icon');
-      
-      if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        eyeIcon.classList.remove('ti-eye');
-        eyeIcon.classList.add('ti-eye-off');
-      } else {
-        pwdInput.type = 'password';
-        eyeIcon.classList.remove('ti-eye-off');
-        eyeIcon.classList.add('ti-eye');
-      }
+      const p = document.getElementById('pwd');
+      const e = document.getElementById('eye-icon');
+      if (p.type === 'password') { p.type = 'text'; e.classList.replace('ti-eye','ti-eye-off'); }
+      else { p.type = 'password'; e.classList.replace('ti-eye-off','ti-eye'); }
     }
+    function doLogin() {
+      const u = document.getElementById('username').value.trim();
+      const p = document.getElementById('pwd').value;
+      const err = document.getElementById('error-msg');
+      if (u && p) { window.location.href = 'app.html'; }
+      else { err.style.display = 'block'; }
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   </script>
-
 </body>
 </html>

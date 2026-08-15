@@ -3,642 +3,947 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Sistema POS, SaaS & Inventario</title>
+<title>VILLALOBOS — Punto de Venta</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="./manifest.json" />
+<!-- jsPDF para generación de PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root {
-    --bg-main: #08090a;
-    --bg-card: #111316;
-    --bg-card-hover: #1a1d22;
-    --border-color: #242830;
-    --text-main: #f0f4f8;
-    --text-muted: #8b95a3;
-    --accent: #b8c0cc;
-    --success: #a8d4b0;
-    --danger: #f09595;
-    --warning: #ef9f27;
-    --radius: 12px;
+    --bg-main:#08090a; --bg-card:#111316; --bg-card2:#16191e;
+    --border:#242830; --text:#f0f4f8; --muted:#8b95a3;
+    --accent:#b8c0cc; --green:#3ecf8e; --red:#ff6b6b; --yellow:#ffd166;
+    --blue:#60a5fa;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-main);
-    color: var(--text-main);
-    margin: 0;
-    overflow: hidden; /* Evita el scroll en toda la página, se hará en el main */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+
+  /* TOP NAV */
+  .topbar{
+    height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;
+    position:sticky;top:0;z-index:100;flex-shrink:0;
   }
+  .topbar-brand{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.08em;display:flex;align-items:center;gap:0.5rem;text-decoration:none;color:var(--text)}
+  .topbar-actions{display:flex;align-items:center;gap:0.75rem}
+  .btn-icon{background:var(--bg-card2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.2s;font-size:1rem;text-decoration:none}
+  .btn-icon:hover{color:var(--text);border-color:var(--accent)}
 
-  /* --- LAYOUT PRINCIPAL (DASHBOARD) --- */
-  .app-container {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
+  /* LAYOUT POS */
+  .pos-layout{display:flex;flex:1;height:calc(100vh - 56px);overflow:hidden}
+
+  /* PANEL IZQUIERDO - PRODUCTOS */
+  .products-panel{
+    flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;
   }
-
-  /* BARRA LATERAL (SIDEBAR) */
-  .sidebar {
-    width: 260px;
-    background: var(--bg-card);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    z-index: 10;
+  .panel-header{
+    padding:1rem 1.25rem;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:0.75rem;flex-shrink:0;
   }
-
-  .sidebar-logo {
-    padding: 1.5rem;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    font-size: 1.2rem;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
+  .search-box{
+    flex:1;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);
+    padding:0.55rem 1rem;border-radius:8px;font-size:0.875rem;outline:none;
+    transition:0.2s;font-family:'Inter',sans-serif;
   }
-
-  .sidebar-user {
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 1px solid var(--border-color);
+  .search-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,0.08)}
+  .btn-sm{
+    background:var(--text);color:var(--bg-main);border:none;padding:0.55rem 1rem;
+    border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer;
+    display:flex;align-items:center;gap:0.35rem;transition:0.2s;font-family:'Inter',sans-serif;white-space:nowrap;
   }
+  .btn-sm:hover{background:var(--accent)}
+  .btn-sm.secondary{background:var(--bg-card2);color:var(--text);border:1px solid var(--border)}
+  .btn-sm.secondary:hover{border-color:var(--accent);background:var(--bg-card2)}
+  .btn-sm.danger{background:rgba(255,107,107,0.12);color:var(--red);border:1px solid rgba(255,107,107,0.2)}
+  .btn-sm.danger:hover{background:rgba(255,107,107,0.2)}
 
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
+  /* GRID PRODUCTOS */
+  .products-grid{
+    flex:1;overflow-y:auto;padding:1rem 1.25rem;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;
+    align-content:start;
   }
+  .products-grid::-webkit-scrollbar{width:4px}
+  .products-grid::-webkit-scrollbar-track{background:transparent}
+  .products-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
 
-  .user-info .name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
-  .user-info .role { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px;}
-
-  .sidebar-nav {
-    flex: 1;
-    padding: 1.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-    overflow-y: auto;
+  .product-card{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+    padding:1rem;cursor:pointer;transition:0.2s;position:relative;
   }
-
-  .nav-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    padding: 0.85rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    text-align: left;
-    width: 100%;
+  .product-card:hover{border-color:var(--accent);background:var(--bg-card2);transform:translateY(-1px)}
+  .product-card.out-of-stock{opacity:0.4;cursor:not-allowed}
+  .product-tag{
+    font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;
+    color:var(--muted);margin-bottom:0.4rem;
   }
-
-  .nav-btn i { font-size: 1.1rem; }
-  .nav-btn:hover { background: var(--bg-main); color: var(--text-main); }
-  
-  .nav-btn.active {
-    background: var(--text-main);
-    color: var(--bg-main);
-    font-weight: 600;
+  .product-name{font-size:0.875rem;font-weight:600;margin-bottom:0.3rem;line-height:1.3}
+  .product-price{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;color:var(--text)}
+  .product-price-unit{font-size:0.65rem;color:var(--muted)}
+  .product-stock{
+    position:absolute;top:0.6rem;right:0.6rem;
+    font-size:0.62rem;padding:0.15rem 0.45rem;border-radius:20px;
+    background:rgba(62,207,142,0.1);color:var(--green);
   }
+  .product-stock.low{background:rgba(255,209,102,0.1);color:var(--yellow)}
+  .product-stock.out{background:rgba(255,107,107,0.1);color:var(--red)}
 
-  .sidebar-footer {
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
+  .empty-products{
+    grid-column:1/-1;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;padding:3rem;color:var(--muted);text-align:center;gap:1rem;
   }
+  .empty-products i{font-size:3rem;opacity:0.3}
+  .empty-products p{font-size:0.875rem}
 
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.8125rem;
-    transition: color 0.2s;
+  /* PANEL DERECHO - FACTURA */
+  .invoice-panel{
+    width:380px;min-width:340px;display:flex;flex-direction:column;
+    background:var(--bg-card);overflow:hidden;flex-shrink:0;
   }
-  .back-link:hover { color: var(--text-main); }
-
-  /* ÁREA DE CONTENIDO PRINCIPAL */
-  .main-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 2.5rem;
-    background: var(--bg-main);
+  .invoice-header{
+    padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;
   }
+  .invoice-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:0.1rem}
+  .invoice-num{font-size:0.72rem;color:var(--muted)}
 
-  .panel { display: none; max-width: 1100px; margin: 0 auto; }
-  .panel.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  
-  .panel-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  /* CLIENTE */
+  .client-section{padding:0.75rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem}
+  .field-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.3rem}
+  .field-input{
+    width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);
+    padding:0.5rem 0.65rem;border-radius:6px;font-size:0.8rem;outline:none;
+    transition:0.2s;font-family:'Inter',sans-serif;
   }
+  .field-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(184,192,204,0.08)}
+  select.field-input{cursor:pointer}
 
-  /* --- COMPONENTES COMPARTIDOS --- */
-  .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
-  .metric-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: var(--radius); }
-  .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-  .metric-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700; }
-  
-  .data-table-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); overflow-x: auto; margin-bottom: 1.5rem; }
-  .data-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-  .data-table th { background: var(--bg-main); color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 1rem; border-bottom: 1px solid var(--border-color); }
-  .data-table td { padding: 1rem; border-bottom: 1px solid var(--border-color); color: var(--text-main); }
-  .data-table tr:last-child td { border-bottom: none; }
-  .data-table tbody tr:hover { background: var(--bg-card-hover); }
-  
-  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-  .status-ok { background: rgba(168,212,176,0.1); color: var(--success); border: 1px solid rgba(168,212,176,0.2); }
-  .status-low { background: rgba(239,159,39,0.1); color: var(--warning); border: 1px solid rgba(239,159,39,0.2); }
-  .status-out { background: rgba(240,149,149,0.1); color: var(--danger); border: 1px solid rgba(240,149,149,0.2); }
+  /* ITEMS CARRITO */
+  .cart-items{flex:1;overflow-y:auto;padding:0.5rem 0}
+  .cart-items::-webkit-scrollbar{width:3px}
+  .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  .cart-empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    height:100%;color:var(--muted);gap:0.75rem;padding:2rem;text-align:center;
+  }
+  .cart-empty i{font-size:2.5rem;opacity:0.25}
+  .cart-empty p{font-size:0.8rem}
+  .cart-item{
+    display:flex;align-items:flex-start;gap:0.5rem;padding:0.6rem 1.25rem;
+    border-bottom:1px solid var(--border);transition:0.15s;
+  }
+  .cart-item:hover{background:rgba(255,255,255,0.02)}
+  .cart-item-info{flex:1;min-width:0}
+  .cart-item-name{font-size:0.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cart-item-price{font-size:0.72rem;color:var(--muted)}
+  .cart-item-controls{display:flex;align-items:center;gap:0.3rem;flex-shrink:0;margin-top:0.15rem}
+  .qty-btn{
+    width:22px;height:22px;border-radius:5px;background:var(--bg-card2);border:1px solid var(--border);
+    color:var(--text);font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:0.15s;
+  }
+  .qty-btn:hover{background:var(--border)}
+  .qty-val{font-size:0.8rem;font-weight:600;min-width:20px;text-align:center}
+  .cart-item-total{font-size:0.8rem;font-weight:600;min-width:64px;text-align:right;flex-shrink:0;padding-top:0.15rem}
+  .remove-btn{color:var(--red);opacity:0.5;cursor:pointer;font-size:0.9rem;padding:0.15rem;transition:0.15s;background:none;border:none;margin-top:0.1rem}
+  .remove-btn:hover{opacity:1}
 
-  .action-btn { background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
-  .action-btn:hover { background: var(--text-main); color: var(--bg-main); }
+  /* TOTALES */
+  .invoice-totals{
+    padding:0.75rem 1.25rem;border-top:1px solid var(--border);
+    background:var(--bg-card2);flex-shrink:0;
+  }
+  .total-row{display:flex;justify-content:space-between;font-size:0.8rem;padding:0.2rem 0}
+  .total-row.label{color:var(--muted)}
+  .total-row.bold{font-weight:700;font-size:1rem;padding-top:0.5rem;border-top:1px solid var(--border);margin-top:0.4rem}
+  .total-row.iva{color:var(--yellow)}
 
-  /* --- POS Estilos --- */
-  .pos-container { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; }
-  .pos-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; }
-  .pos-catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; max-height: 450px; overflow-y: auto; padding-right: 4px; }
-  .product-tile { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem; cursor: pointer; transition: all 0.2s; text-align: left; display: flex; flex-direction: column; justify-content: space-between; min-height: 85px; }
-  .product-tile:hover:not(.disabled) { border-color: var(--accent); background: var(--bg-card-hover); }
-  .product-tile.disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--danger); }
-  .product-name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem; }
-  .product-stock { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-  .product-price { font-size: 0.8rem; color: var(--success); font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin-top: auto; }
-  
-  .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
-  .cart-table th { text-align: left; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color); }
-  .cart-table td { padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
-  .cart-total-box { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-  .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.9rem; }
-  .cart-total-row.final { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-main); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
-  
-  .btn-cobrar { width: 100%; background: var(--success); color: #08090a; border: none; border-radius: 8px; padding: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-cobrar:hover { opacity: 0.9; }
-  .btn-eliminar-item { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 1rem; }
+  /* PAGO */
+  .payment-section{padding:0.75rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
+  .payment-methods{display:grid;grid-template-columns:repeat(3,1fr);gap:0.4rem;margin-bottom:0.75rem}
+  .pay-btn{
+    background:var(--bg-main);border:1px solid var(--border);color:var(--muted);
+    padding:0.5rem 0.25rem;border-radius:7px;font-size:0.72rem;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:0.2rem;transition:0.2s;
+    font-family:'Inter',sans-serif;
+  }
+  .pay-btn:hover,.pay-btn.active{background:var(--bg-card2);border-color:var(--accent);color:var(--text)}
+  .pay-btn i{font-size:1.1rem}
 
-  /* --- Calculadora Estilos --- */
-  .calc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 10px; }
-  .bcv-badge { display: flex; align-items: center; gap: 6px; background: rgba(168,212,176,0.12); border: 0.5px solid rgba(168,212,176,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--success); transition: all .3s; cursor: pointer; }
-  .section-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
-  .section-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; font-family: 'Space Grotesk', sans-serif; }
-  .field-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-bottom: .75rem; }
-  .field-right { display: flex; align-items: center; gap: 6px; }
-  .field-right input { font-size: 14px; padding: 8px 10px; border: 0.5px solid var(--border-color); border-radius: 6px; background: var(--bg-main); color: var(--text-main); outline: none; text-align: right; width: 110px; }
-  .currency-tag { font-size: 12px; color: var(--text-muted); min-width: 22px; }
-  .result-card { background: var(--bg-card); border: 0.5px solid var(--border-color); border-radius: var(--radius); padding: 1.5rem; margin-bottom: .5rem; }
-  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-  .metric { background: var(--bg-main); border-radius: 6px; padding: 1rem; border: 0.5px solid var(--border-color); }
-  .metric-val { font-size: 24px; font-weight: 700; color: var(--text-main); line-height: 1.1; font-family: 'Space Grotesk', sans-serif; }
-  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem}
+  .btn-generate{
+    background:var(--text);color:var(--bg-main);border:none;padding:0.7rem;border-radius:8px;
+    font-weight:700;font-size:0.875rem;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;gap:0.4rem;transition:0.2s;font-family:'Inter',sans-serif;
+  }
+  .btn-generate:hover{background:var(--accent);transform:translateY(-1px)}
+  .btn-generate:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+  .btn-clear{
+    background:rgba(255,107,107,0.08);color:var(--red);border:1px solid rgba(255,107,107,0.2);
+    padding:0.7rem;border-radius:8px;font-weight:600;font-size:0.875rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:0.4rem;transition:0.2s;font-family:'Inter',sans-serif;
+  }
+  .btn-clear:hover{background:rgba(255,107,107,0.15)}
 
-  /* RESPONSIVE */
-  @media(max-width: 900px) {
-    .app-container { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-color); }
-    .sidebar-user { display: none; }
-    .sidebar-nav { flex-direction: row; overflow-x: auto; padding: 1rem; gap: 0.5rem; }
-    .nav-btn { white-space: nowrap; width: auto; }
-    .sidebar-footer { display: none; }
-    .main-content { padding: 1.5rem; }
-    .pos-container { grid-template-columns: 1fr; }
+  /* MODAL AGREGAR PRODUCTO */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;
+    display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:0.2s;
+    backdrop-filter:blur(4px);
+  }
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:16px;
+    padding:2rem;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;
+    transform:translateY(20px);transition:0.2s;
+  }
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem}
+  .form-group{margin-bottom:1rem}
+  .form-label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.4rem}
+  .form-input{
+    width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);
+    padding:0.65rem 0.85rem;border-radius:8px;font-size:0.875rem;outline:none;transition:0.2s;font-family:'Inter',sans-serif;
+  }
+  .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,0.08)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+  .modal-actions{display:flex;gap:0.75rem;margin-top:1.5rem}
+  .btn-modal-save{
+    flex:1;background:var(--text);color:var(--bg-main);border:none;padding:0.7rem;border-radius:8px;
+    font-weight:700;font-size:0.875rem;cursor:pointer;transition:0.2s;font-family:'Inter',sans-serif;
+  }
+  .btn-modal-save:hover{background:var(--accent)}
+  .btn-modal-cancel{
+    flex:1;background:var(--bg-card2);color:var(--muted);border:1px solid var(--border);
+    padding:0.7rem;border-radius:8px;font-weight:600;font-size:0.875rem;cursor:pointer;transition:0.2s;font-family:'Inter',sans-serif;
+  }
+  .btn-modal-cancel:hover{color:var(--text)}
+
+  /* TOAST */
+  .toast{
+    position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg-card);border:1px solid var(--border);
+    border-radius:10px;padding:0.75rem 1.1rem;font-size:0.8rem;z-index:300;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);transform:translateY(20px);opacity:0;transition:0.3s;
+    display:flex;align-items:center;gap:0.5rem;
+  }
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(62,207,142,0.3);color:var(--green)}
+  .toast.error{border-color:rgba(255,107,107,0.3);color:var(--red)}
+
+  @media(max-width:900px){
+    .pos-layout{flex-direction:column}
+    .invoice-panel{width:100%;min-width:unset;height:auto;max-height:55vh}
+    .products-panel{height:45vh}
   }
 </style>
 </head>
 <body>
 
-<div class="app-container">
+<!-- TOP BAR -->
+<header class="topbar">
+  <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
+  <div class="topbar-actions">
+    <span style="font-size:0.75rem;color:var(--muted)" id="clock"></span>
+    <a href="index.html" class="btn-icon" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
+    <a href="login.html" class="btn-icon" title="Cerrar Sesión"><i class="ti ti-logout"></i></a>
+  </div>
+</header>
 
-  <!-- BARRA LATERAL (SIDEBAR) -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <i class="ti ti-shield-lock"></i> VILLALOBOS
+<div class="pos-layout">
+
+  <!-- ===== PANEL PRODUCTOS ===== -->
+  <section class="products-panel">
+    <div class="panel-header">
+      <input type="text" class="search-box" id="search-input" placeholder="&#xe16e; Buscar producto..." oninput="filterProducts()">
+      <button class="btn-sm" onclick="openModal()"><i class="ti ti-plus"></i> Producto</button>
     </div>
-    
-    <div class="sidebar-user">
-      <div class="avatar"><i class="ti ti-user"></i></div>
-      <div class="user-info">
-        <div class="name">Administración</div>
-        <div class="role">Sesión Activa</div>
+    <div class="products-grid" id="products-grid">
+      <div class="empty-products">
+        <i class="ti ti-package"></i>
+        <p>No hay productos.<br>Agrega el primero con el botón <strong>+ Producto</strong>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL FACTURA ===== -->
+  <aside class="invoice-panel">
+    <div class="invoice-header">
+      <div class="invoice-title">Factura <span id="inv-type-label">Fiscal</span></div>
+      <div class="invoice-num" id="inv-num-label">Nro. 00000001 · <span id="inv-date"></span></div>
+    </div>
+
+    <!-- DATOS CLIENTE -->
+    <div class="client-section">
+      <div class="field-row">
+        <div>
+          <div class="field-label">Tipo Contribuyente</div>
+          <select class="field-input" id="client-type">
+            <option value="J">J – Jurídico</option>
+            <option value="V">V – Natural</option>
+            <option value="E">E – Extranjero</option>
+            <option value="G">G – Gobierno</option>
+            <option value="P">P – Pasaporte</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">RIF / Cédula</div>
+          <input type="text" class="field-input" id="client-rif" placeholder="12345678-9">
+        </div>
+      </div>
+      <div style="margin-bottom:0.5rem">
+        <div class="field-label">Razón Social / Nombre</div>
+        <input type="text" class="field-input" id="client-name" placeholder="Cliente de Contado">
+      </div>
+      <div class="field-row">
+        <div>
+          <div class="field-label">Tipo Factura</div>
+          <select class="field-input" id="invoice-type" onchange="updateInvType()">
+            <option value="FACTURA">Factura</option>
+            <option value="NOTA_ENTREGA">Nota Entrega</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Forma de Pago</div>
+          <select class="field-input" id="pay-method">
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="TRANSFERENCIA">Transferencia</option>
+            <option value="PUNTO">Punto de Venta</option>
+            <option value="DIVISAS">Divisas</option>
+            <option value="MIXTO">Pago Mixto</option>
+          </select>
+        </div>
       </div>
     </div>
 
-    <nav class="sidebar-nav">
-      <button class="nav-btn active" onclick="switchRole('supervisor')"><i class="ti ti-chart-pie"></i> Dashboard</button>
-      <button class="nav-btn" onclick="switchRole('inventario')"><i class="ti ti-box"></i> Inventario</button>
-      <button class="nav-btn" onclick="switchRole('calculadora')"><i class="ti ti-calculator"></i> Calculadora Textil</button>
-      <button class="nav-btn" onclick="switchRole('operador')"><i class="ti ti-cash-register"></i> Terminal POS</button>
-    </nav>
+    <!-- ITEMS -->
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty">
+        <i class="ti ti-shopping-cart"></i>
+        <p>Selecciona productos del catálogo para agregarlos a la factura.</p>
+      </div>
+    </div>
 
-    <div class="sidebar-footer">
-      <a href="index.html" class="back-link"><i class="ti ti-arrow-left"></i> Volver a Landing</a>
+    <!-- TOTALES SENIAT -->
+    <div class="invoice-totals">
+      <div class="total-row label"><span>Subtotal (Base Imponible)</span><span id="t-subtotal">Bs. 0,00</span></div>
+      <div class="total-row label"><span>Exento</span><span id="t-exempt">Bs. 0,00</span></div>
+      <div class="total-row iva"><span>IVA (16%)</span><span id="t-iva">Bs. 0,00</span></div>
+      <div class="total-row bold"><span>TOTAL A PAGAR</span><span id="t-total">Bs. 0,00</span></div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="payment-section">
+      <div class="action-row">
+        <button class="btn-generate" id="btn-factura" onclick="generatePDF()">
+          <i class="ti ti-file-invoice"></i> Generar Factura PDF
+        </button>
+        <button class="btn-clear" onclick="clearCart()">
+          <i class="ti ti-trash"></i> Limpiar
+        </button>
+      </div>
     </div>
   </aside>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
-    
-    <!-- PANEL SUPERVISOR -->
-    <div id="panel-supervisor" class="panel active">
-      <div class="panel-title">Resumen Financiero</div>
-      <div class="grid-metrics">
-        <div class="metric-card">
-          <div class="metric-label">Ingresos Totales (Día)</div>
-          <div class="metric-value" id="supIngresos">$18,450.00</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Márgenes Textil</div>
-          <div class="metric-value" style="color: var(--success);">Óptimos (48%)</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Total Unidades en Stock</div>
-          <div class="metric-value" id="supStockTotal">142 Uds</div>
-        </div>
-      </div>
-      <p style="color: var(--text-muted); font-size: 0.875rem; line-height: 1.6; max-width: 800px;">Área exclusiva para la gerencia. Aquí se supervisan los costos de producción, los márgenes de ganancia global, reportes de ventas y la auditoría de personal de manera totalmente independiente de la caja operativa.</p>
-    </div>
-
-    <!-- PANEL DE INVENTARIO -->
-    <div id="panel-inventario" class="panel">
-      <div class="calc-header">
-        <div class="panel-title" style="margin-bottom:0;">Gestión de Inventario</div>
-        <button class="action-btn" onclick="alert('Función de agregar SKU en desarrollo')"><i class="ti ti-plus"></i> Nuevo Producto</button>
-      </div>
-      
-      <div class="grid-metrics">
-        <div class="metric-card">
-          <div class="metric-label">Valor del Inventario</div>
-          <div class="metric-value" id="invValorTotal">$0.00</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">Alertas de Quiebre</div>
-          <div class="metric-value" style="color: var(--warning);" id="invAlertas">0 SKUs</div>
-        </div>
-      </div>
-
-      <div class="data-table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>Producto</th>
-              <th>Talla</th>
-              <th>Precio (USD)</th>
-              <th>Stock Actual</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTableBody">
-            <!-- Se llena por JS -->
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- CALCULADORA DE PRENDAS TEXTIL -->
-    <div id="panel-calculadora" class="panel">
-      <div class="calc-header">
-        <div class="panel-title" style="margin-bottom:0;">Calculadora de Costos Textiles</div>
-        <div class="bcv-badge" id="bcvBadge" onclick="pedirTasaManual()">
-          <i class="ti ti-refresh" id="bcvIcon"></i> <span id="bcvText">Consultando BCV...</span>
-        </div>
-      </div>
-      <div class="section-card">
-        <div class="section-title"><i class="ti ti-roll"></i> Tela y Confección</div>
-        <div class="field-row"><div class="field-label">Metros (m)</div><div class="field-right"><input type="number" id="telaMetros" value="1.5" step="0.1" oninput="calcular()"><span class="currency-tag">m</span></div></div>
-        <div class="field-row"><div class="field-label">Precio x metro</div><div class="field-right"><input type="number" id="telaPrecio" value="5" step="0.5" oninput="calcular()"><span class="currency-tag">$</span></div></div>
-        <div class="field-row"><div class="field-label">Costo Costurera</div><div class="field-right"><input type="number" id="costurera" value="8" step="0.5" oninput="calcular()"><span class="currency-tag">$</span></div></div>
-      </div>
-      <div class="result-card">
-        <div class="result-label">Precio de Venta Sugerido (Con 50% de ganancia)</div>
-        <div class="result-grid">
-          <div class="metric"><div class="metric-label">Dólares</div><div class="metric-val accent" id="resUSD">$0.00</div></div>
-          <div class="metric"><div class="metric-label">Bolívares (BCV)</div><div class="metric-val" id="resBS">Bs —</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PANEL DE CAJA / POS -->
-    <div id="panel-operador" class="panel">
-      <div class="panel-title">Terminal de Venta Rápida</div>
-      
-      <div class="pos-container">
-        <div class="pos-section">
-          <div class="section-title"><i class="ti ti-hanger"></i> Catálogo de Prendas (Toca para agregar)</div>
-          <div class="pos-catalog" id="catalogGrid">
-            <!-- Se llena por JS -->
-          </div>
-        </div>
-
-        <div class="pos-section" style="display:flex; flex-direction:column; justify-content:space-between;">
-          <div>
-            <div class="section-title"><i class="ti ti-receipt"></i> Ticket de Venta Actual</div>
-            <table class="cart-table">
-              <thead>
-                <tr><th>Prenda</th><th>Cant</th><th>Subtotal</th><th></th></tr>
-              </thead>
-              <tbody id="cartTableBody">
-                <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div>
-            <div class="cart-total-box">
-              <div class="cart-total-row"><span>Total Dólares:</span><strong id="cartTotalUSD" style="color:var(--success);">$0.00</strong></div>
-              <div class="cart-total-row"><span>Total Bolívares:</span><strong id="cartTotalBS">Bs 0.00</strong></div>
-            </div>
-            <button class="btn-cobrar" onclick="procesarCobro()"><i class="ti ti-check"></i> Procesar Venta</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </main>
 </div>
 
+<!-- ===== MODAL AGREGAR PRODUCTO ===== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title"><i class="ti ti-package"></i> <span id="modal-title-text">Agregar Producto</span></div>
+    <div class="form-group">
+      <label class="form-label">Nombre del Producto *</label>
+      <input type="text" class="form-input" id="p-name" placeholder="Ej: Harina P.A.N. 1Kg">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <input type="text" class="form-input" id="p-cat" placeholder="Ej: Alimentos">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Código / Referencia</label>
+        <input type="text" class="form-input" id="p-code" placeholder="Ej: ART-001">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio (Bs.) *</label>
+        <input type="number" class="form-input" id="p-price" placeholder="0.00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Stock (Unidades)</label>
+        <input type="number" class="form-input" id="p-stock" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Unidad de Medida</label>
+        <select class="form-input" id="p-unit">
+          <option value="UND">Unidad (UND)</option>
+          <option value="KG">Kilogramo (KG)</option>
+          <option value="GR">Gramos (GR)</option>
+          <option value="LT">Litro (LT)</option>
+          <option value="ML">Mililitro (ML)</option>
+          <option value="CJ">Caja (CJ)</option>
+          <option value="PAQ">Paquete (PAQ)</option>
+          <option value="DOC">Docena (DOC)</option>
+          <option value="M2">Metro Cuadrado (M2)</option>
+          <option value="M">Metro (M)</option>
+          <option value="SRV">Servicio (SRV)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo Fiscal</label>
+        <select class="form-input" id="p-tax">
+          <option value="gravado">Gravado (IVA 16%)</option>
+          <option value="exento">Exento de IVA</option>
+          <option value="exonerado">Exonerado de IVA</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-save" onclick="saveProduct()">Guardar Producto</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
 <script>
-  // --- BASE DE DATOS CENTRAL (Memoria) ---
-  let inventarioCentral = [
-    { id: 1, sku: 'VLL-001', name: 'Conjunto Seamless', size: 'M', price: 25.00, stock: 45 },
-    { id: 2, sku: 'VLL-002', name: 'Enterizo Ribbed', size: 'S', price: 22.50, stock: 3 },
-    { id: 3, sku: 'VLL-003', name: 'Leggings Compresión', size: 'L', price: 18.00, stock: 12 },
-    { id: 4, sku: 'VLL-004', name: 'Top Deportivo Dry-Fit', size: 'S', price: 12.00, stock: 0 },
-    { id: 5, sku: 'VLL-005', name: 'Short Antideslizante', size: 'M', price: 15.00, stock: 30 },
-    { id: 6, sku: 'VLL-006', name: 'Medias Grip Pilates', size: 'UNI', price: 5.00, stock: 50 }
-  ];
+/* ============================
+   ESTADO GLOBAL
+============================ */
+let products = JSON.parse(localStorage.getItem('vb_products') || '[]');
+let cart = [];
+let invoiceCounter = parseInt(localStorage.getItem('vb_inv_counter') || '1');
+let editingProductId = null;
 
-  let carrito = [];
-  let ingresosDiaTotal = 18450.00;
-  let tasaBCV = null;
+const IVA_RATE = 0.16;
 
-  // --- CONTROL DE PANELES ---
-  function switchRole(role) {
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    
-    if(role === 'supervisor') {
-      document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
-      document.getElementById('panel-supervisor').classList.add('active');
-      actualizarMetricasSupervisor();
-    } else if(role === 'inventario') {
-      document.querySelector('.nav-btn:nth-child(2)').classList.add('active');
-      document.getElementById('panel-inventario').classList.add('active');
-      renderInventario();
-    } else if(role === 'calculadora') {
-      document.querySelector('.nav-btn:nth-child(3)').classList.add('active');
-      document.getElementById('panel-calculadora').classList.add('active');
-      calcular();
-    } else {
-      document.querySelector('.nav-btn:nth-child(4)').classList.add('active');
-      document.getElementById('panel-operador').classList.add('active');
-      renderCatalog();
-    }
+/* ============================
+   EMPRESA (configurable)
+============================ */
+const EMPRESA = {
+  nombre: 'VILLALOBOS, C.A.',
+  rif: 'J-12345678-9',
+  direccion: 'Av. Libertador, Edificio Centro Comercial, Local 10, Caracas, Venezuela',
+  telefono: '+58 212-555-0100',
+  email: 'ventas@villalobos.com.ve',
+  nroContribuyente: 'SNAT-2024-DS-001234'
+};
+
+/* ============================
+   RELOJ
+============================ */
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('es-VE', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ============================
+   FECHA FACTURA
+============================ */
+function formatDate(d) {
+  return d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+document.getElementById('inv-date').textContent = formatDate(new Date());
+
+/* ============================
+   TIPO FACTURA
+============================ */
+function updateInvType() {
+  const v = document.getElementById('invoice-type').value;
+  document.getElementById('inv-type-label').textContent = v === 'FACTURA' ? 'Fiscal' : 'Nota de Entrega';
+}
+
+/* ============================
+   TOAST
+============================ */
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+/* ============================
+   FORMATEAR MONEDA
+============================ */
+function fmt(n) {
+  return 'Bs. ' + parseFloat(n).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+/* ============================
+   PRODUCTOS — CRUD
+============================ */
+function saveProducts() {
+  localStorage.setItem('vb_products', JSON.stringify(products));
+}
+
+function openModal(id = null) {
+  editingProductId = id;
+  const mt = document.getElementById('modal-title-text');
+  if (id !== null) {
+    const p = products.find(x=>x.id===id);
+    mt.textContent = 'Editar Producto';
+    document.getElementById('p-name').value = p.name;
+    document.getElementById('p-cat').value = p.cat;
+    document.getElementById('p-code').value = p.code;
+    document.getElementById('p-price').value = p.price;
+    document.getElementById('p-stock').value = p.stock;
+    document.getElementById('p-unit').value = p.unit;
+    document.getElementById('p-tax').value = p.tax;
+  } else {
+    mt.textContent = 'Agregar Producto';
+    ['p-name','p-cat','p-code','p-price','p-stock'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('p-unit').value = 'UND';
+    document.getElementById('p-tax').value = 'gravado';
   }
+  document.getElementById('modal-overlay').classList.add('open');
+}
 
-  // --- MÓDULO: INVENTARIO ---
-  function renderInventario() {
-    const tbody = document.getElementById('inventoryTableBody');
-    if(!tbody) return;
-    tbody.innerHTML = '';
-    
-    let valorTotal = 0;
-    let alertas = 0;
-    let unidadesTotales = 0;
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingProductId = null;
+}
 
-    inventarioCentral.forEach(item => {
-      valorTotal += (item.price * item.stock);
-      unidadesTotales += item.stock;
-      
-      let statusHtml = '';
-      if(item.stock === 0) {
-        statusHtml = `<span class="status-badge status-out"><i class="ti ti-alert-circle"></i> Agotado</span>`;
-        alertas++;
-      } else if (item.stock < 10) {
-        statusHtml = `<span class="status-badge status-low"><i class="ti ti-alert-triangle"></i> Bajo</span>`;
-        alertas++;
-      } else {
-        statusHtml = `<span class="status-badge status-ok"><i class="ti ti-circle-check"></i> Óptimo</span>`;
-      }
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="font-family:'Space Grotesk', sans-serif; font-weight:600;">${item.sku}</td>
-        <td>${item.name}</td>
-        <td style="font-weight:700; color:var(--accent);">${item.size}</td>
-        <td>$${item.price.toFixed(2)}</td>
-        <td style="font-weight:700;">${item.stock} uds</td>
-        <td>${statusHtml}</td>
-        <td>
-          <button class="action-btn" onclick="ajustarStock(${item.id})"><i class="ti ti-edit"></i> Ajustar</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    document.getElementById('invValorTotal').textContent = '$' + valorTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
-    document.getElementById('invAlertas').textContent = alertas + ' SKUs críticos';
-    document.getElementById('supStockTotal').textContent = unidadesTotales + ' Uds';
+function saveProduct() {
+  const name = document.getElementById('p-name').value.trim();
+  const price = parseFloat(document.getElementById('p-price').value);
+  if (!name || isNaN(price) || price < 0) {
+    showToast('Nombre y precio son obligatorios.','error'); return;
   }
-
-  function ajustarStock(id) {
-    const item = inventarioCentral.find(i => i.id === id);
-    if(item) {
-      let nuevoStock = prompt(`Ajustar stock actual para ${item.name} (SKU: ${item.sku}):`, item.stock);
-      if(nuevoStock !== null && !isNaN(nuevoStock) && nuevoStock >= 0) {
-        item.stock = parseInt(nuevoStock);
-        renderInventario(); 
-        renderCatalog();    
-      }
-    }
+  const prod = {
+    id: editingProductId !== null ? editingProductId : Date.now(),
+    name,
+    cat: document.getElementById('p-cat').value.trim() || 'General',
+    code: document.getElementById('p-code').value.trim() || ('ART-'+String(products.length+1).padStart(3,'0')),
+    price,
+    stock: parseInt(document.getElementById('p-stock').value) || 0,
+    unit: document.getElementById('p-unit').value,
+    tax: document.getElementById('p-tax').value,
+  };
+  if (editingProductId !== null) {
+    const idx = products.findIndex(x=>x.id===editingProductId);
+    products[idx] = prod;
+    showToast('Producto actualizado.');
+  } else {
+    products.push(prod);
+    showToast('Producto agregado.');
   }
+  saveProducts();
+  renderProducts();
+  closeModal();
+}
 
-  function actualizarMetricasSupervisor() {
-    let unidadesTotales = inventarioCentral.reduce((acc, item) => acc + item.stock, 0);
-    document.getElementById('supStockTotal').textContent = unidadesTotales + ' Uds';
-    document.getElementById('supIngresos').textContent = '$' + ingresosDiaTotal.toLocaleString('en-US', {minimumFractionDigits: 2});
+function deleteProduct(id, e) {
+  e.stopPropagation();
+  if (!confirm('¿Eliminar este producto?')) return;
+  products = products.filter(x=>x.id!==id);
+  cart = cart.filter(x=>x.id!==id);
+  saveProducts();
+  renderProducts();
+  renderCart();
+  showToast('Producto eliminado.','error');
+}
+
+/* ============================
+   RENDER PRODUCTOS
+============================ */
+function filterProducts() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  renderProducts(q);
+}
+
+function renderProducts(filter='') {
+  const grid = document.getElementById('products-grid');
+  const filtered = products.filter(p=>
+    p.name.toLowerCase().includes(filter) ||
+    p.cat.toLowerCase().includes(filter) ||
+    p.code.toLowerCase().includes(filter)
+  );
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-products"><i class="ti ti-package"></i><p>${
+      products.length === 0
+        ? 'No hay productos.<br>Agrega el primero con el botón <strong>+ Producto</strong>.'
+        : 'No se encontraron resultados.'
+    }</p></div>`;
+    return;
   }
-
-  // --- MÓDULO: POS (Caja) ---
-  function renderCatalog() {
-    const grid = document.getElementById('catalogGrid');
-    if(!grid) return;
-    grid.innerHTML = '';
-    inventarioCentral.forEach(prod => {
-      const agotado = prod.stock <= 0;
-      const tile = document.createElement('button');
-      tile.className = `product-tile ${agotado ? 'disabled' : ''}`;
-      tile.innerHTML = `
-        <div>
-          <div class="product-name">${prod.name} (${prod.size})</div>
-          <div class="product-stock"><i class="ti ti-box"></i> Disp: ${prod.stock}</div>
+  grid.innerHTML = filtered.map(p => {
+    const stockClass = p.stock === 0 ? 'out' : p.stock < 5 ? 'low' : '';
+    const stockLabel = p.stock === 0 ? 'Sin stock' : p.stock < 5 ? `${p.stock} restantes` : `${p.stock} uds.`;
+    const taxBadge = p.tax === 'gravado' ? '' : `<span style="font-size:0.62rem;background:rgba(255,209,102,0.1);color:var(--yellow);border-radius:3px;padding:0.1rem 0.35rem;margin-left:0.25rem">${p.tax}</span>`;
+    return `
+      <div class="product-card${p.stock===0?' out-of-stock':''}" onclick="${p.stock===0?'showToast(\'Sin stock\',\'error\')':'addToCart('+p.id+')'}" title="${p.name}">
+        <span class="product-stock ${stockClass}">${stockLabel}</span>
+        <div class="product-tag">${p.cat} · ${p.code}</div>
+        <div class="product-name">${p.name} ${taxBadge}</div>
+        <div class="product-price">${fmt(p.price)}</div>
+        <div class="product-price-unit">por ${p.unit}</div>
+        <div style="display:flex;gap:0.4rem;margin-top:0.6rem">
+          <button class="btn-sm secondary" style="font-size:0.65rem;padding:0.25rem 0.5rem;flex:1"
+            onclick="event.stopPropagation();openModal(${p.id})"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn-sm danger" style="font-size:0.65rem;padding:0.25rem 0.5rem"
+            onclick="deleteProduct(${p.id},event)"><i class="ti ti-trash"></i></button>
         </div>
-        <div class="product-price">$${prod.price.toFixed(2)}</div>
-      `;
-      if(!agotado) {
-        tile.onclick = () => agregarAlCarrito(prod);
-      }
-      grid.appendChild(tile);
-    });
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============================
+   CARRITO
+============================ */
+function addToCart(id) {
+  const p = products.find(x=>x.id===id);
+  const existing = cart.find(x=>x.id===id);
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({...p, qty:1});
+  }
+  renderCart();
+  showToast(`"${p.name}" agregado.`);
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(x=>x.id===id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(x=>x.id!==id);
+  renderCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(x=>x.id!==id);
+  renderCart();
+}
+
+function clearCart() {
+  if (cart.length === 0) return;
+  if (!confirm('¿Limpiar la factura?')) return;
+  cart = [];
+  renderCart();
+}
+
+function renderCart() {
+  const container = document.getElementById('cart-items');
+  if (cart.length === 0) {
+    container.innerHTML = `<div class="cart-empty"><i class="ti ti-shopping-cart"></i><p>Selecciona productos del catálogo para agregarlos a la factura.</p></div>`;
+    updateTotals(0,0);
+    return;
+  }
+  container.innerHTML = cart.map(item => {
+    const lineTotal = item.price * item.qty;
+    return `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${fmt(item.price)} / ${item.unit} · ${item.tax !== 'gravado' ? item.tax : 'IVA 16%'}</div>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+          <span class="qty-val">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${item.id},+1)">+</button>
+        </div>
+        <div class="cart-item-total">${fmt(lineTotal)}</div>
+        <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="ti ti-x"></i></button>
+      </div>
+    `;
+  }).join('');
+
+  // Calcular totales
+  let base = 0, exempt = 0;
+  cart.forEach(item => {
+    const lt = item.price * item.qty;
+    if (item.tax === 'gravado') base += lt;
+    else exempt += lt;
+  });
+  updateTotals(base, exempt);
+}
+
+function updateTotals(base, exempt) {
+  const iva = base * IVA_RATE;
+  const total = base + exempt + iva;
+  document.getElementById('t-subtotal').textContent = fmt(base);
+  document.getElementById('t-exempt').textContent = fmt(exempt);
+  document.getElementById('t-iva').textContent = fmt(iva);
+  document.getElementById('t-total').textContent = fmt(total);
+}
+
+/* ============================
+   GENERAR PDF — SENIAT
+============================ */
+async function generatePDF() {
+  if (cart.length === 0) { showToast('Agrega productos a la factura.','error'); return; }
+
+  const clientName = document.getElementById('client-name').value.trim() || 'CLIENTE DE CONTADO';
+  const clientType = document.getElementById('client-type').value;
+  const clientRif = document.getElementById('client-rif').value.trim() || 'V-00000000';
+  const payMethod = document.getElementById('pay-method').value;
+  const invType = document.getElementById('invoice-type').value;
+
+  // Calcular totales
+  let base = 0, exempt = 0;
+  cart.forEach(i => {
+    const lt = i.price * i.qty;
+    if (i.tax === 'gravado') base += lt; else exempt += lt;
+  });
+  const iva = base * IVA_RATE;
+  const total = base + exempt + iva;
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+
+  const W = 215.9;
+  const M = 15; // margen
+
+  // ─── COLORES ───
+  const BLACK = [0,0,0];
+  const DARK = [20,22,26];
+  const GRAY = [100,110,120];
+  const LGRAY = [200,205,210];
+  const WHITE = [255,255,255];
+  const ACCENT_BG = [240,244,248];
+
+  // ─── HELPERS ───
+  const setFont = (style='normal', size=10) => {
+    doc.setFont('Helvetica', style);
+    doc.setFontSize(size);
+  };
+  const setColor = (rgb) => doc.setTextColor(...rgb);
+  const drawLine = (x1,y1,x2,y2,r=LGRAY,w=0.3) => {
+    doc.setDrawColor(...r);
+    doc.setLineWidth(w);
+    doc.line(x1,y1,x2,y2);
+  };
+  const fillRect = (x,y,w,h,color) => {
+    doc.setFillColor(...color);
+    doc.rect(x,y,w,h,'F');
+  };
+
+  let Y = 0;
+
+  // ═══════════════════════════════════════════
+  // HEADER EMPRESA — barra oscura
+  // ═══════════════════════════════════════════
+  fillRect(0, 0, W, 38, DARK);
+  setFont('bold', 18);
+  setColor(WHITE);
+  doc.text(EMPRESA.nombre, M, 14);
+
+  setFont('normal', 8);
+  setColor([180,190,200]);
+  doc.text(`RIF: ${EMPRESA.rif}`, M, 20);
+  doc.text(EMPRESA.direccion, M, 25, {maxWidth: W - M - 70});
+  doc.text(`Telf: ${EMPRESA.telefono}  |  ${EMPRESA.email}`, M, 30);
+  doc.text(`Nro. Contribuyente SENIAT: ${EMPRESA.nroContribuyente}`, M, 35);
+
+  // Tipo de documento (esquina derecha)
+  const invTypeLabel = invType === 'FACTURA' ? 'FACTURA' : 'NOTA DE ENTREGA';
+  setFont('bold', 14);
+  setColor(WHITE);
+  doc.text(invTypeLabel, W - M, 14, {align:'right'});
+  setFont('normal', 9);
+  setColor([180,190,200]);
+  const invNro = String(invoiceCounter).padStart(8,'0');
+  doc.text(`Nro.: ${invNro}`, W - M, 20, {align:'right'});
+  doc.text(`Fecha: ${formatDate(new Date())}`, W - M, 26, {align:'right'});
+  doc.text(`Control: ${invNro}`, W - M, 32, {align:'right'});
+
+  Y = 44;
+
+  // ═══════════════════════════════════════════
+  // SECCIÓN CLIENTE
+  // ═══════════════════════════════════════════
+  fillRect(M, Y, W - M*2, 22, ACCENT_BG);
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.3);
+  doc.rect(M, Y, W - M*2, 22, 'S');
+
+  setFont('bold', 8);
+  setColor(GRAY);
+  doc.text('DATOS DEL CLIENTE', M+4, Y+5);
+
+  setFont('bold', 9);
+  setColor(DARK);
+  doc.text(clientName.toUpperCase(), M+4, Y+11);
+
+  setFont('normal', 8);
+  setColor(GRAY);
+  const rifLabel = `RIF/Cédula: ${clientType}-${clientRif}`;
+  doc.text(rifLabel, M+4, Y+16);
+  doc.text(`Forma de Pago: ${payMethod}`, M+4, Y+21);
+
+  // Condición de pago y emisión
+  setFont('normal', 8);
+  setColor(GRAY);
+  doc.text(`Emisión: ${formatDate(new Date())}`, W - M - 4, Y+11, {align:'right'});
+  doc.text('Condición: CONTADO', W - M - 4, Y+16, {align:'right'});
+
+  Y += 27;
+
+  // ═══════════════════════════════════════════
+  // TABLA DE ÍTEMS
+  // ═══════════════════════════════════════════
+  // Header tabla
+  const COL = {
+    num:   {x: M,      w: 10},
+    code:  {x: M+10,   w: 22},
+    name:  {x: M+32,   w: 72},
+    unit:  {x: M+104,  w: 14},
+    qty:   {x: M+118,  w: 16},
+    price: {x: M+134,  w: 24},
+    tax:   {x: M+158,  w: 14},
+    total: {x: M+172,  w: W-M-M-172},
+  };
+
+  fillRect(M, Y, W-M*2, 7, DARK);
+  setFont('bold', 7);
+  setColor(WHITE);
+  doc.text('#',       COL.num.x+2,   Y+4.5);
+  doc.text('CÓDIGO',  COL.code.x+1,  Y+4.5);
+  doc.text('DESCRIPCIÓN', COL.name.x+1, Y+4.5);
+  doc.text('UND',     COL.unit.x+1,  Y+4.5);
+  doc.text('CANT.',   COL.qty.x+1,   Y+4.5);
+  doc.text('P. UNIT.', COL.price.x+1, Y+4.5);
+  doc.text('ALÍC.',   COL.tax.x+1,   Y+4.5);
+  doc.text('TOTAL',   COL.total.x+1, Y+4.5);
+  Y += 7;
+
+  // Filas
+  setFont('normal', 7.5);
+  cart.forEach((item, idx) => {
+    const rowH = 7;
+    const bg = idx % 2 === 0 ? WHITE : [246,248,250];
+    fillRect(M, Y, W-M*2, rowH, bg);
+    drawLine(M, Y+rowH, M+W-M*2, Y+rowH);
+
+    setColor(DARK);
+    const lineTotal = item.price * item.qty;
+    const alicuota = item.tax === 'gravado' ? '16%' : item.tax === 'exento' ? 'E' : 'EXO';
+
+    doc.text(String(idx+1), COL.num.x+2, Y+4.5);
+    doc.text(item.code.substring(0,10), COL.code.x+1, Y+4.5);
+
+    // Nombre con truncado
+    const nameMaxW = COL.name.w - 2;
+    const nameStr = item.name.length > 40 ? item.name.substring(0,38)+'…' : item.name;
+    doc.text(nameStr, COL.name.x+1, Y+4.5);
+
+    doc.text(item.unit, COL.unit.x+1, Y+4.5);
+    doc.text(String(item.qty), COL.qty.x+COL.qty.w-2, Y+4.5, {align:'right'});
+    doc.text(item.price.toFixed(2), COL.price.x+COL.price.w-2, Y+4.5, {align:'right'});
+    doc.text(alicuota, COL.tax.x+COL.tax.w-2, Y+4.5, {align:'right'});
+    doc.text(lineTotal.toFixed(2), W-M-2, Y+4.5, {align:'right'});
+    Y += rowH;
+  });
+
+  // Borde tabla
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.3);
+  doc.rect(M, Y-7*cart.length-7, W-M*2, 7*cart.length+7, 'S');
+
+  Y += 6;
+
+  // ═══════════════════════════════════════════
+  // TOTALES (alineados derecha)
+  // ═══════════════════════════════════════════
+  const TW = 85;
+  const TX = W - M - TW;
+
+  fillRect(TX, Y, TW, 38, ACCENT_BG);
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(0.3);
+  doc.rect(TX, Y, TW, 38, 'S');
+
+  const totalRows = [
+    {label:'Base Imponible:', val: fmt(base)},
+    {label:'Monto Exento:', val: fmt(exempt)},
+    {label:'IVA (Alíc. 16%):', val: fmt(iva)},
+  ];
+  let TY = Y + 5;
+  setFont('normal', 8.5);
+  totalRows.forEach(row => {
+    setColor(GRAY);
+    doc.text(row.label, TX+4, TY);
+    setColor(DARK);
+    doc.text(row.val, TX+TW-3, TY, {align:'right'});
+    TY += 6;
+  });
+
+  // Total
+  drawLine(TX+3, TY, TX+TW-3, TY, LGRAY, 0.4);
+  TY += 4;
+  setFont('bold', 10);
+  setColor(DARK);
+  doc.text('TOTAL A PAGAR:', TX+4, TY);
+  doc.text(fmt(total), TX+TW-3, TY, {align:'right'});
+
+  Y += 44;
+
+  // ═══════════════════════════════════════════
+  // NOTAS LEGALES SENIAT
+  // ═══════════════════════════════════════════
+  if (Y < 220) {
+    drawLine(M, Y, W-M, Y);
+    Y += 4;
+    setFont('normal', 6.5);
+    setColor(GRAY);
+    const legal1 = 'Documento fiscal emitido conforme a las disposiciones de la Ley del Impuesto al Valor Agregado (IVA), la Providencia Administrativa SNAT/2011/0071 y la';
+    const legal2 = 'Ley de Impuesto Sobre la Renta vigente en la República Bolivariana de Venezuela. Este documento es prueba de la operación comercial realizada.';
+    const legal3 = `ALÍCUOTA GENERAL IVA: 16% | ALÍCUOTA REDUCIDA: 8% | EXENTOS: según Art. 18 Ley IVA | Forma de Pago: ${payMethod}`;
+    doc.text(legal1, M, Y); Y+=3.5;
+    doc.text(legal2, M, Y); Y+=3.5;
+    doc.text(legal3, M, Y); Y+=5;
   }
 
-  function agregarAlCarrito(prod) {
-    const existente = carrito.find(item => item.id === prod.id);
-    const qtyActual = existente ? existente.qty : 0;
-    
-    if(qtyActual + 1 > prod.stock) {
-      alert(`Stock insuficiente.`);
-      return;
-    }
-
-    if(existente) {
-      existente.qty += 1;
-    } else {
-      carrito.push({ ...prod, qty: 1 });
-    }
-    renderCarrito();
+  // ═══════════════════════════════════════════
+  // FIRMA / SELLO
+  // ═══════════════════════════════════════════
+  if (Y < 240) {
+    setFont('normal', 8);
+    setColor(GRAY);
+    drawLine(M, Y+16, M+60, Y+16, LGRAY, 0.3);
+    doc.text('Firma Autorizada', M, Y+20);
+    drawLine(W-M-60, Y+16, W-M, Y+16, LGRAY, 0.3);
+    doc.text('Sello de la Empresa', W-M, Y+20, {align:'right'});
   }
 
-  function cambiarQty(id, delta) {
-    const itemCart = carrito.find(i => i.id === id);
-    const prodInventario = inventarioCentral.find(i => i.id === id);
-    
-    if(itemCart) {
-      if(delta > 0 && itemCart.qty + delta > prodInventario.stock) return;
-      itemCart.qty += delta;
-      if(itemCart.qty <= 0) {
-        carrito = carrito.filter(i => i.id !== id);
-      }
-    }
-    renderCarrito();
-  }
+  // ═══════════════════════════════════════════
+  // PIE DE PÁGINA
+  // ═══════════════════════════════════════════
+  fillRect(0, 265, W, 12, DARK);
+  setFont('normal', 6.5);
+  setColor([150,160,170]);
+  doc.text(`${EMPRESA.nombre} · RIF: ${EMPRESA.rif} · ${EMPRESA.telefono}`, W/2, 271, {align:'center'});
+  doc.text(`Este documento fue generado el ${new Date().toLocaleString('es-VE')} · Nro. Factura: ${invNro}`, W/2, 274.5, {align:'center'});
 
-  function renderCarrito() {
-    const tbody = document.getElementById('cartTableBody');
-    const totalUSDEl = document.getElementById('cartTotalUSD');
-    const totalBSEl = document.getElementById('cartTotalBS');
-    if(!tbody) return;
+  // Guardar y aumentar contador
+  const filename = `Factura_${invNro}_${clientName.replace(/\s+/g,'_').substring(0,20)}.pdf`;
+  doc.save(filename);
 
-    if(carrito.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding:1rem;">Ticket vacío</td></tr>`;
-      totalUSDEl.textContent = '$0.00';
-      totalBSEl.textContent = 'Bs 0.00';
-      return;
-    }
+  invoiceCounter++;
+  localStorage.setItem('vb_inv_counter', invoiceCounter);
+  document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
 
-    tbody.innerHTML = '';
-    let totalUSD = 0;
+  showToast(`Factura ${invNro} generada exitosamente.`);
+}
 
-    carrito.forEach(item => {
-      let sub = item.price * item.qty;
-      totalUSD += sub;
+/* ============================
+   INIT
+============================ */
+renderProducts();
+renderCart();
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${item.name} <span style="font-size:0.7rem;color:var(--accent);">(${item.size})</span></td>
-        <td style="white-space:nowrap;">
-          <button onclick="cambiarQty(${item.id}, -1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">-</button>
-          <span style="margin:0 4px;">${item.qty}</span>
-          <button onclick="cambiarQty(${item.id}, 1)" style="background:none;border:1px solid var(--border-color);color:var(--text-main);padding:0 4px;border-radius:4px;cursor:pointer;">+</button>
-        </td>
-        <td style="font-weight:600;">$${sub.toFixed(2)}</td>
-        <td><button class="btn-eliminar-item" onclick="cambiarQty(${item.id}, -999)"><i class="ti ti-trash"></i></button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    totalUSDEl.textContent = '$' + totalUSD.toFixed(2);
-    totalBSEl.textContent = tasaBCV ? 'Bs ' + Math.round(totalUSD * tasaBCV).toLocaleString('es-VE') : 'Bs —';
-  }
-
-  function procesarCobro() {
-    if(carrito.length === 0) return;
-    let totalVenta = 0;
-    
-    carrito.forEach(itemCart => {
-      totalVenta += (itemCart.price * itemCart.qty);
-      let prod = inventarioCentral.find(i => i.id === itemCart.id);
-      if(prod) prod.stock -= itemCart.qty;
-    });
-
-    ingresosDiaTotal += totalVenta;
-    alert('Venta Procesada: $' + totalVenta.toFixed(2));
-    carrito = [];
-    
-    renderCarrito();
-    renderCatalog();
-    renderInventario();
-    actualizarMetricasSupervisor();
-  }
-
-  // --- MÓDULO: TASA BCV & CALCULADORA ---
-  async function fetchBCV() {
-    const txt = document.getElementById('bcvText');
-    if (!txt) return;
-    txt.textContent = 'Consultando BCV...';
-    try {
-      const res = await fetch('https://bcv.today/api/v1/rate.json', { cache: 'no-cache' });
-      if (!res.ok) throw new Error('error http');
-      const data = await res.json();
-      const rate = data?.usd?.rate ?? data?.USD?.rate ?? data?.rate ?? null;
-      if (!rate) throw new Error('error formato');
-      tasaBCV = parseFloat(rate);
-      txt.innerHTML = `<strong>Bs ${tasaBCV.toFixed(2)}</strong> / $1`;
-      calcular(); renderCarrito();
-    } catch(e) {
-      txt.innerHTML = 'Sin red — <u onclick="pedirTasaManual()">Fijar manual</u>';
-    }
-  }
-
-  function pedirTasaManual() {
-    let inputVal = prompt('Ingrese tasa del dólar:', tasaBCV || '');
-    if (inputVal && !isNaN(parseFloat(inputVal.replace(',', '.')))) {
-      tasaBCV = parseFloat(inputVal.replace(',', '.'));
-      document.getElementById('bcvText').innerHTML = `<strong>Bs ${tasaBCV.toFixed(2)}</strong> (Manual)`;
-      calcular(); renderCarrito();
-    }
-  }
-
-  function calcular() {
-    const metrosEl = document.getElementById('telaMetros');
-    if (!metrosEl) return;
-    const metros = parseFloat(metrosEl.value) || 0;
-    const pTela = parseFloat(document.getElementById('telaPrecio').value) || 0;
-    const costCost = parseFloat(document.getElementById('costurera').value) || 0;
-    
-    const base = (metros * pTela) + costCost + 1.10; 
-    const ganancia = base * 0.50; 
-    const precioUSD = base + ganancia;
-    
-    document.getElementById('resUSD').textContent = '$' + precioUSD.toFixed(2);
-    document.getElementById('resBS').textContent = tasaBCV ? 'Bs ' + Math.round(precioUSD * tasaBCV).toLocaleString('es-VE') : 'Bs —';
-  }
-
-  // --- INICIALIZACIÓN ---
-  fetchBCV();
-  renderInventario();
-  renderCatalog();
+// Atajo teclado: Escape cierra modal
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
 </body>
 </html>
