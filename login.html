@@ -102,6 +102,7 @@
   }
   .login-visual-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,19,22,0.4), rgba(8,9,10,0.8)); z-index: 0; }
   .error-msg { color: #ff6b6b; font-size: 0.8rem; margin-top: 0.75rem; text-align: center; display: none; }
+  
   @media (max-width: 850px) {
     body { background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop') center/cover no-repeat; }
     body::before { content: ''; position: absolute; inset: 0; background: rgba(8,9,10,0.6); z-index: 0; }
@@ -143,18 +144,19 @@
         Entrar al Sistema <i class="ti ti-arrow-right"></i>
       </button>
       
-      <p class="error-msg" id="error-msg">Usuario o contraseña incorrectos.</p>
+      <p class="error-msg" id="error-msg"></p>
     </div>
     <div class="login-visual"><div class="login-visual-overlay"></div></div>
   </div>
 
   <script>
-    // 1. INICIALIZACIÓN DE SEGURIDAD (Conexión al BaaS)
+    // 1. INICIALIZACIÓN DE SEGURIDAD
     const { createClient } = supabase;
     
-    // ATENCIÓN: Reemplazarás estos valores con los que te entregue tu panel
-    const supabaseUrl = 'https://nmjabbfapjxlejwlkucu.supabase.co/rest/v1/'; 
-    const supabaseKey = 'sb_publishable_cEPFYIALrwsNf2S5fueOIg_QIyC40S6';
+    // 👇 PEGA TUS CLAVES EXACTAMENTE AQUÍ, ENTRE LAS COMILLAS SIMPLES 👇
+    const supabaseUrl = 'sb_publishable_cEPFYIALrwsNf2S5fueOIg_QIyC40S6'; 
+    const supabaseKey = 'xOmyc07uz80dmyU6';
+    // 👆 ========================================================== 👆
     
     const db = createClient(supabaseUrl, supabaseKey);
 
@@ -169,49 +171,52 @@
       }
     }
 
-    // 3. LÓGICA CRIPTOGRÁFICA DE INGRESO
+    // 3. LÓGICA CRIPTOGRÁFICA Y DEPURACIÓN
     async function doLogin() {
       const email = document.getElementById('username').value.trim();
       const password = document.getElementById('pwd').value;
       const err = document.getElementById('error-msg');
       const btn = document.getElementById('btn-login');
 
-      // Validación frontend básica
       if (!email || !password) { 
         err.textContent = 'Por favor, completa ambos campos.';
         err.style.display = 'block'; 
         return; 
       }
 
-      // Estado de carga (Previene ataques de fuerza bruta manuales)
       btn.disabled = true;
-      btn.innerHTML = '<i class="ti ti-loader"></i> Validando credenciales...';
+      btn.innerHTML = '<i class="ti ti-loader"></i> Validando...';
       err.style.display = 'none';
 
-      // Petición HTTPS segura a la base de datos
-      const { data, error } = await db.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+      try {
+        const { data, error } = await db.auth.signInWithPassword({
+          email: email,
+          password: password,
+        });
 
-      if (error) {
-        // En caso de error, el servidor no revela si falló el correo o la clave (práctica de seguridad)
-        err.textContent = 'Credenciales inválidas o cuenta inexistente.';
+        if (error) {
+          // Imprime el error exacto que devuelve la base de datos
+          err.textContent = 'ERROR REAL: ' + error.message;
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = 'Entrar al Sistema <i class="ti ti-arrow-right"></i>';
+        } else {
+          window.location.href = 'app.html';
+        }
+      } catch (e) {
+        // Atrapa errores de red o del navegador
+        err.textContent = 'FALLO DE SISTEMA: ' + e.message;
         err.style.display = 'block';
         btn.disabled = false;
         btn.innerHTML = 'Entrar al Sistema <i class="ti ti-arrow-right"></i>';
-      } else {
-        // Éxito: El JWT se almacena de forma segura de manera automática y redirige
-        window.location.href = 'app.html';
       }
     }
 
-    // Soporte para tecla Enter
+    // 4. EVENTOS ADICIONALES
     document.addEventListener('keydown', e => { 
       if (e.key === 'Enter') doLogin(); 
     });
     
-    // REGISTRO DEL SERVICE WORKER (Para mantener capacidades PWA)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
