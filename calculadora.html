@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VILLALOBOS — Calculadora Textil</title>
+<link rel="manifest" href="./manifest.json" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #08090a; --bg-card: #111316; --bg-card2: #16191e;
+    --border: #242830; --text: #f0f4f8; --muted: #8b95a3;
+    --accent: #b8c0cc; --green: #3ecf8e; --blue: #60a5fa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text); min-height: 100vh; display: flex; }
+
+  /* SIDEBAR (Heredado del Dashboard) */
+  .sidebar {
+    width: 240px; min-height: 100vh; background: var(--bg-card);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    padding: 1.5rem 1rem; position: fixed; top: 0; left: 0; bottom: 0;
+  }
+  .sidebar-brand {
+    font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700;
+    letter-spacing: 0.08em; display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0.75rem 1.5rem; color: var(--text); text-decoration: none;
+    border-bottom: 1px solid var(--border); margin-bottom: 1.5rem;
+  }
+  .nav-section { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 0.75rem; margin-bottom: 0.5rem; }
+  .nav-item {
+    display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem 0.75rem;
+    border-radius: 8px; color: var(--muted); text-decoration: none; font-size: 0.875rem;
+    transition: 0.2s; margin-bottom: 0.1rem; cursor: pointer;
+  }
+  .nav-item:hover, .nav-item.active { background: var(--bg-card2); color: var(--text); }
+  .nav-item i { font-size: 1.1rem; }
+  .sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); padding-top: 1rem; }
+  .user-info { display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem 0.75rem; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-card2); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--accent); }
+  .user-name { font-size: 0.8rem; font-weight: 500; }
+  .user-role { font-size: 0.7rem; color: var(--muted); }
+
+  /* MAIN CONTENT */
+  .main { margin-left: 240px; flex: 1; padding: 2rem; display: flex; flex-direction: column; }
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+  .page-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; }
+  .page-subtitle { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* CONFIGURACIÓN BCV */
+  .bcv-bar {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .bcv-info { display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; }
+  .bcv-input {
+    background: var(--bg-main); border: 1px solid var(--border); color: var(--text);
+    padding: 0.5rem 0.75rem; border-radius: 6px; font-family: 'Inter', sans-serif; width: 120px; outline: none;
+  }
+  .bcv-input:focus { border-color: var(--accent); }
+  .btn-save {
+    background: var(--text); color: var(--bg-main); border: none; padding: 0.5rem 1rem;
+    border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+  }
+  .btn-save:hover { background: var(--accent); }
+
+  /* CALCULADORA GRID */
+  .calc-container { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.5rem; align-items: start; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+  .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+  .form-group.full { grid-column: span 2; }
+  .form-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .input-wrapper { position: relative; display: flex; align-items: center; }
+  .input-wrapper i { position: absolute; left: 0.75rem; color: var(--muted); font-size: 1rem; }
+  .form-input {
+    width: 100%; background: var(--bg-main); border: 1px solid var(--border); color: var(--text);
+    padding: 0.75rem 0.75rem 0.75rem 2.25rem; border-radius: 8px; font-size: 0.875rem; outline: none; transition: 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .form-input:focus { border-color: var(--accent); }
+
+  /* RESULTADOS */
+  .results-card { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; position: sticky; top: 1.5rem; }
+  .result-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { font-size: 0.875rem; color: var(--muted); }
+  .result-value { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 600; }
+  
+  .total-box { background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-top: 1.5rem; text-align: center; }
+  .total-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+  .total-price { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; color: var(--green); margin-bottom: 0.25rem; }
+  .total-bs { font-size: 0.875rem; color: var(--muted); }
+
+  @media (max-width: 900px) { .calc-container { grid-template-columns: 1fr; } }
+  @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <a href="index.html" class="sidebar-brand"><i class="ti ti-shield-lock" style="font-size:1.4rem"></i> VILLALOBOS</a>
+    
+    <div class="nav-section">Principal</div>
+    <a class="nav-item" href="index.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+    <a class="nav-item" href="app.html"><i class="ti ti-receipt"></i> Punto de Venta</a>
+    
+    <div class="nav-section" style="margin-top:1rem">Herramientas</div>
+    <a class="nav-item active" href="calculadora.html"><i class="ti ti-calculator"></i> Calculadora Textil</a>
+
+    <div class="nav-section" style="margin-top:1rem">Gestión</div>
+    <a class="nav-item" href="#"><i class="ti ti-package"></i> Productos</a>
+    <a class="nav-item" href="#"><i class="ti ti-users"></i> Clientes</a>
+    <a class="nav-item" href="#"><i class="ti ti-report-analytics"></i> Reportes</a>
+    <a class="nav-item" href="#"><i class="ti ti-settings"></i> Configuración</a>
+    
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar"><i class="ti ti-user" style="font-size:0.9rem"></i></div>
+        <div><div class="user-name">Administrador</div><div class="user-role">Villalobos C.A.</div></div>
+      </div>
+      <a class="nav-item" href="login.html" style="margin-top:0.5rem"><i class="ti ti-logout"></i> Cerrar Sesión</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Calculadora de Costos</h1>
+        <p class="page-subtitle">Cálculo de márgenes y consumo para confección de prendas</p>
+      </div>
+      <button class="btn-save" onclick="limpiarCalculadora()"><i class="ti ti-refresh"></i> Limpiar</button>
+    </div>
+
+    <!-- TASA BCV CACHE -->
+    <div class="bcv-bar">
+      <div class="bcv-info">
+        <i class="ti ti-building-bank" style="font-size: 1.2rem; color: var(--accent)"></i>
+        <span>Tasa de Cambio Oficial (BCV)</span>
+      </div>
+      <div style="display:flex; gap:0.5rem">
+        <input type="number" id="tasa-bcv" class="bcv-input" step="0.01" placeholder="Ej: 36.50">
+        <button class="btn-save" onclick="guardarTasa()">Guardar Tasa</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <!-- FORMULARIO DE COSTOS -->
+      <div class="card">
+        <div class="card-title"><i class="ti ti-cut"></i> Parámetros de Producción</div>
+        
+        <div class="form-group full">
+          <label class="form-label">Nombre de la Prenda / Proyecto</label>
+          <div class="input-wrapper">
+            <i class="ti ti-shirt"></i>
+            <input type="text" class="form-input" id="calc-nombre" placeholder="Ej: Camisa Corporativa Oxford">
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Costo de Tela por Metro ($)</label>
+            <div class="input-wrapper">
+              <i class="ti ti-currency-dollar"></i>
+              <input type="number" class="form-input" id="calc-tela-precio" value="0" step="0.1" oninput="calcular()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Metros Utilizados</label>
+            <div class="input-wrapper">
+              <i class="ti ti-ruler-measure"></i>
+              <input type="number" class="form-input" id="calc-tela-metros" value="0" step="0.1" oninput="calcular()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Costo de Insumos ($)</label>
+            <div class="input-wrapper">
+              <i class="ti ti-pin"></i>
+              <input type="number" class="form-input" id="calc-insumos" value="0" step="0.1" placeholder="Hilos, botones, cierres" oninput="calcular()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Costo de Confección ($)</label>
+            <div class="input-wrapper">
+              <i class="ti ti-sewing-machine"></i>
+              <input type="number" class="form-input" id="calc-mano-obra" value="0" step="0.1" placeholder="Mano de obra" oninput="calcular()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Gastos Operativos ($)</label>
+            <div class="input-wrapper">
+              <i class="ti ti-bolt"></i>
+              <input type="number" class="form-input" id="calc-operativos" value="0" step="0.1" placeholder="Luz, empaque, etc." oninput="calcular()">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Margen de Ganancia (%)</label>
+            <div class="input-wrapper">
+              <i class="ti ti-percentage"></i>
+              <input type="number" class="form-input" id="calc-margen" value="30" step="1" oninput="calcular()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL DE RESULTADOS -->
+      <div class="results-card">
+        <div class="card-title"><i class="ti ti-report-money"></i> Resumen Financiero</div>
+        
+        <div class="result-row">
+          <span class="result-label">Costo Material Textil</span>
+          <span class="result-value" id="res-tela">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Subtotal Producción</span>
+          <span class="result-value" id="res-costo-base">$0.00</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Ganancia Esperada</span>
+          <span class="result-value" id="res-ganancia" style="color: var(--blue)">$0.00</span>
+        </div>
+
+        <div class="total-box">
+          <div class="total-label">Precio de Venta Sugerido</div>
+          <div class="total-price" id="res-precio-usd">$0.00</div>
+          <div class="total-bs" id="res-precio-bs">Bs. 0,00</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Inicialización y recuperación de la tasa BCV desde localStorage
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedRate = localStorage.getItem('vb_bcv_rate');
+      if (savedRate) {
+        document.getElementById('tasa-bcv').value = parseFloat(savedRate).toFixed(2);
+      }
+      calcular();
+    });
+
+    function guardarTasa() {
+      const rate = parseFloat(document.getElementById('tasa-bcv').value);
+      if (!isNaN(rate) && rate > 0) {
+        localStorage.setItem('vb_bcv_rate', rate);
+        alert('Tasa oficial BCV actualizada en el almacenamiento local.');
+        calcular();
+      } else {
+        alert('Por favor, ingresa una tasa de cambio válida.');
+      }
+    }
+
+    function limpiarCalculadora() {
+      document.getElementById('calc-nombre').value = '';
+      document.getElementById('calc-tela-precio').value = '0';
+      document.getElementById('calc-tela-metros').value = '0';
+      document.getElementById('calc-insumos').value = '0';
+      document.getElementById('calc-mano-obra').value = '0';
+      document.getElementById('calc-operativos').value = '0';
+      document.getElementById('calc-margen').value = '30';
+      calcular();
+    }
+
+    function calcular() {
+      // Obtener valores de los inputs
+      const precioTela = parseFloat(document.getElementById('calc-tela-precio').value) || 0;
+      const metrosTela = parseFloat(document.getElementById('calc-tela-metros').value) || 0;
+      const insumos = parseFloat(document.getElementById('calc-insumos').value) || 0;
+      const manoObra = parseFloat(document.getElementById('calc-mano-obra').value) || 0;
+      const operativos = parseFloat(document.getElementById('calc-operativos').value) || 0;
+      const margen = parseFloat(document.getElementById('calc-margen').value) || 0;
+      const bcv = parseFloat(document.getElementById('tasa-bcv').value) || 1; // Previene división por 0 o NaN
+
+      // Lógica de costos
+      const costoMaterialTextil = precioTela * metrosTela;
+      const costoBase = costoMaterialTextil + insumos + manoObra + operativos;
+      
+      // Cálculo del margen sobre el precio de venta (Método comercial estándar)
+      // Precio = Costo / (1 - Margen%)
+      let precioVenta = 0;
+      let gananciaNeta = 0;
+
+      if (margen >= 100) {
+        // Fallback matemático si el margen ingresado es igual o mayor a 100%
+        precioVenta = costoBase + (costoBase * (margen / 100));
+      } else {
+        precioVenta = costoBase / (1 - (margen / 100));
+      }
+      
+      gananciaNeta = precioVenta - costoBase;
+      const precioVentaBs = precioVenta * bcv;
+
+      // Renderizar valores en el DOM
+      document.getElementById('res-tela').textContent = `$${costoMaterialTextil.toFixed(2)}`;
+      document.getElementById('res-costo-base').textContent = `$${costoBase.toFixed(2)}`;
+      document.getElementById('res-ganancia').textContent = `$${gananciaNeta.toFixed(2)}`;
+      document.getElementById('res-precio-usd').textContent = `$${precioVenta.toFixed(2)}`;
+      document.getElementById('res-precio-bs').textContent = `Bs. ${precioVentaBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+  </script>
+</body>
+</html>
