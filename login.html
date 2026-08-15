@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VILLALOBOS — Iniciar Sesión</title>
-  <link rel="manifest" href="./manifest.json" />
+<link rel="manifest" href="./manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="./manifest.json" />
+<!-- Importación del SDK de Seguridad (Supabase) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --bg-main: #08090a;
@@ -88,7 +89,8 @@
     cursor: pointer; transition: var(--transition); display: flex; justify-content: center;
     align-items: center; gap: 0.5rem; font-family: 'Inter', sans-serif;
   }
-  .btn-submit:hover { background: var(--accent); transform: translateY(-1px); }
+  .btn-submit:hover:not(:disabled) { background: var(--accent); transform: translateY(-1px); }
+  .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
   .login-visual {
     width: 55%; position: relative;
     background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
@@ -121,10 +123,12 @@
       </a>
       <h1 class="login-title">Ingresar</h1>
       <p class="login-subtitle">Accede al panel de control y punto de venta.</p>
+      
       <div class="input-group">
-        <label class="input-label">Usuario</label>
-        <input type="text" class="input-field" id="username" placeholder="operador@villalobos.com">
+        <label class="input-label">Correo Electrónico</label>
+        <input type="email" class="input-field" id="username" placeholder="operador@villalobos.com">
       </div>
+      
       <div class="input-group">
         <label class="input-label">Contraseña</label>
         <input type="password" class="input-field" id="pwd" placeholder="••••••••">
@@ -132,39 +136,87 @@
           <i class="ti ti-eye" id="eye-icon"></i>
         </button>
       </div>
+      
       <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
-      <button class="btn-submit" onclick="doLogin()">
+      
+      <button class="btn-submit" id="btn-login" onclick="doLogin()">
         Entrar al Sistema <i class="ti ti-arrow-right"></i>
       </button>
+      
       <p class="error-msg" id="error-msg">Usuario o contraseña incorrectos.</p>
     </div>
     <div class="login-visual"><div class="login-visual-overlay"></div></div>
   </div>
+
   <script>
+    // 1. INICIALIZACIÓN DE SEGURIDAD (Conexión al BaaS)
+    const { createClient } = supabase;
+    
+    // ATENCIÓN: Reemplazarás estos valores con los que te entregue tu panel
+    const supabaseUrl = 'TU_SUPABASE_URL_AQUI'; 
+    const supabaseKey = 'TU_SUPABASE_ANON_KEY_AQUI';
+    
+    const db = createClient(supabaseUrl, supabaseKey);
+
+    // 2. FUNCIÓN DE VISIBILIDAD DE CONTRASEÑA
     function togglePassword() {
       const p = document.getElementById('pwd');
       const e = document.getElementById('eye-icon');
-      if (p.type === 'password') { p.type = 'text'; e.classList.replace('ti-eye','ti-eye-off'); }
-      else { p.type = 'password'; e.classList.replace('ti-eye-off','ti-eye'); }
+      if (p.type === 'password') { 
+        p.type = 'text'; e.classList.replace('ti-eye','ti-eye-off'); 
+      } else { 
+        p.type = 'password'; e.classList.replace('ti-eye-off','ti-eye'); 
+      }
     }
-    function doLogin() {
-      const u = document.getElementById('username').value.trim();
-      const p = document.getElementById('pwd').value;
-      const err = document.getElementById('error-msg');
-      if (u && p) { window.location.href = 'app.html'; }
-      else { err.style.display = 'block'; }
-    }
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-  </script>
-  <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('SaaS Service Worker registrado', reg.scope))
-        .catch(err => console.error('Fallo en registro de SW', err));
-    });
-  }
-</script>
 
+    // 3. LÓGICA CRIPTOGRÁFICA DE INGRESO
+    async function doLogin() {
+      const email = document.getElementById('username').value.trim();
+      const password = document.getElementById('pwd').value;
+      const err = document.getElementById('error-msg');
+      const btn = document.getElementById('btn-login');
+
+      // Validación frontend básica
+      if (!email || !password) { 
+        err.textContent = 'Por favor, completa ambos campos.';
+        err.style.display = 'block'; 
+        return; 
+      }
+
+      // Estado de carga (Previene ataques de fuerza bruta manuales)
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader"></i> Validando credenciales...';
+      err.style.display = 'none';
+
+      // Petición HTTPS segura a la base de datos
+      const { data, error } = await db.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (error) {
+        // En caso de error, el servidor no revela si falló el correo o la clave (práctica de seguridad)
+        err.textContent = 'Credenciales inválidas o cuenta inexistente.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Entrar al Sistema <i class="ti ti-arrow-right"></i>';
+      } else {
+        // Éxito: El JWT se almacena de forma segura de manera automática y redirige
+        window.location.href = 'app.html';
+      }
+    }
+
+    // Soporte para tecla Enter
+    document.addEventListener('keydown', e => { 
+      if (e.key === 'Enter') doLogin(); 
+    });
+    
+    // REGISTRO DEL SERVICE WORKER (Para mantener capacidades PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
+      });
+    }
+  </script>
 </body>
 </html>
