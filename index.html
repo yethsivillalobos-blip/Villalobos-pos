@@ -177,5 +177,15 @@
     const d = new Date();
     document.getElementById('today-date').textContent = d.toLocaleDateString('es-VE', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
   </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SaaS Service Worker registrado', reg.scope))
+        .catch(err => console.error('Fallo en registro de SW', err));
+    });
+  }
+</script>
+
 </body>
 </html>
