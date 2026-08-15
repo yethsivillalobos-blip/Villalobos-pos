@@ -306,5 +306,14 @@
       document.getElementById('res-precio-bs').textContent = `Bs. ${precioVentaBs.toLocaleString('es-VE', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     }
   </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SaaS Service Worker registrado', reg.scope))
+        .catch(err => console.error('Fallo en registro de SW', err));
+    });
+  }
+</script>
 </body>
 </html>
