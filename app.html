@@ -548,8 +548,8 @@ function updateTotals(base, exempt) {
 /* ═══════════════════════════════════════
    GENERAR PDF + GUARDAR EN SUPABASE
 ═══════════════════════════════════════ */
-async function generatePDF() {
-  if (cart.length === 0) { showToast('Agrega productos a la factura.','error'); return; }
+  async function registrarPago() {
+  if (cart.length === 0) { showToast('Agrega productos al registro.','error'); return; }
   const btn = document.getElementById('btn-factura');
   btn.disabled = true;
 
@@ -557,7 +557,7 @@ async function generatePDF() {
   const clientType = document.getElementById('client-type').value;
   const clientRif  = document.getElementById('client-rif').value.trim() || '00000000';
   const payMethod  = document.getElementById('pay-method').value;
-  const invType    = document.getElementById('invoice-type').value;
+  const invType    = document.getElementById('invoice-type').value; // Factura o Nota Entrega
 
   let base = 0, exempt = 0;
   cart.forEach(i => {
@@ -568,6 +568,121 @@ async function generatePDF() {
   const total = base + exempt + iva;
   const invNro = String(invoiceCounter).padStart(8,'0');
 
+  /* ── Guardar Venta en Supabase ── */
+  const { error: dbErr } = await sb.from('facturas').insert({
+    user_id:        currentUserId,
+    nro_factura:    invNro,
+    tipo_doc:       invType,
+    cliente_nombre: clientName,
+    cliente_tipo:   clientType,
+    cliente_rif:    clientRif,
+    forma_pago:     payMethod,
+    items:          cart.map(i => ({ id:i.id, nombre:i.nombre, codigo:i.codigo, precio:i.precio, qty:i.qty, unidad:i.unidad, tipo_fiscal:i.tipo_fiscal })),
+    subtotal:       parseFloat(base.toFixed(2)),
+    monto_exento:   parseFloat(exempt.toFixed(2)),
+    iva:            parseFloat(iva.toFixed(2)),
+    total:          parseFloat(total.toFixed(2)),
+    fecha:          (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0],
+  });
+  if (dbErr) { showToast('Error al guardar registro: ' + dbErr.message,'error'); btn.disabled = false; return; }
+
+  /* ── Descontar Inventario en Supabase ── */
+  for (const item of cart) {
+    const p = products.find(x => x.id === item.id);
+    if (p) {
+      const nuevoStock = p.stock - item.qty;
+      await sb.from('productos').update({ stock: nuevoStock }).eq('id', item.id);
+    }
+  }
+
+  /* ── Generar PDF (Formato de Recibo / Nota de Entrega) ── */
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  const W = 215.9, M = 15;
+  const BLACK=[0,0,0], DARK=[20,22,26], GRAY=[100,110,120], LGRAY=[200,205,210], WHITE=[255,255,255], ABGD=[240,244,248];
+
+  const sf = (style='normal',size=10) => { doc.setFont('Helvetica',style); doc.setFontSize(size); };
+  const sc = rgb => doc.setTextColor(...rgb);
+  const ln = (x1,y1,x2,y2,r=LGRAY,w=.3) => { doc.setDrawColor(...r); doc.setLineWidth(w); doc.line(x1,y1,x2,y2); };
+  const fr = (x,y,w,h,c) => { doc.setFillColor(...c); doc.rect(x,y,w,h,'F'); };
+
+  let Y = 0;
+  fr(0,0,W,38,DARK);
+  sf('bold',18); sc(WHITE); doc.text(EMPRESA.nombre, M, 14);
+  sf('normal',8); sc([180,190,200]);
+  doc.text(EMPRESA.direccion, M, 20, {maxWidth: W-M-70});
+  doc.text(`Telf: ${EMPRESA.telefono}  |  ${EMPRESA.email}`, M, 25);
+  
+  sf('bold',14); sc(WHITE); doc.text('NOTA DE ENTREGA', W-M, 14, {align:'right'});
+  sf('normal',9); sc([180,190,200]);
+  doc.text(`Control Nro.: ${invNro}`, W-M, 20, {align:'right'});
+  doc.text(`Fecha: ${formatDate(new Date())}`, W-M, 26, {align:'right'});
+  Y = 44;
+
+  fr(M,Y,W-M*2,22,ABGD);
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(M,Y,W-M*2,22,'S');
+  sf('bold',8); sc(GRAY); doc.text('DATOS DEL CLIENTE', M+4, Y+5);
+  sf('bold',9); sc(DARK); doc.text(clientName.toUpperCase(), M+4, Y+11);
+  sf('normal',8); sc(GRAY);
+  doc.text(`Identificación: ${clientType}-${clientRif}`, M+4, Y+16);
+  doc.text(`Forma de Pago: ${payMethod}`, M+4, Y+21);
+  doc.text(`Emisión: ${formatDate(new Date())}`, W-M-4, Y+11, {align:'right'});
+  Y += 27;
+
+  const COL={num:{x:M,w:10},code:{x:M+10,w:22},name:{x:M+32,w:72},unit:{x:M+104,w:14},qty:{x:M+118,w:16},price:{x:M+134,w:24},total:{x:M+158,w:W-M-M-158}};
+  fr(M,Y,W-M*2,7,DARK); sf('bold',7); sc(WHITE);
+  doc.text('#',COL.num.x+2,Y+4.5); doc.text('CÓDIGO',COL.code.x+1,Y+4.5);
+  doc.text('DESCRIPCIÓN',COL.name.x+1,Y+4.5); doc.text('UND',COL.unit.x+1,Y+4.5);
+  doc.text('CANT.',COL.qty.x+1,Y+4.5); doc.text('P. UNIT.',COL.price.x+1,Y+4.5);
+  doc.text('TOTAL',COL.total.x+1,Y+4.5);
+  Y += 7;
+
+  sf('normal',7.5);
+  cart.forEach((item,idx) => {
+    const rowH=7, bg=idx%2===0?WHITE:[246,248,250];
+    fr(M,Y,W-M*2,rowH,bg); ln(M,Y+rowH,M+W-M*2,Y+rowH);
+    sc(DARK);
+    const lt = item.precio * item.qty;
+    doc.text(String(idx+1), COL.num.x+2, Y+4.5);
+    doc.text((item.codigo||'').substring(0,10), COL.code.x+1, Y+4.5);
+    doc.text(item.nombre.length>40?item.nombre.substring(0,38)+'…':item.nombre, COL.name.x+1, Y+4.5);
+    doc.text(item.unidad||'UND', COL.unit.x+1, Y+4.5);
+    doc.text(String(item.qty), COL.qty.x+COL.qty.w-2, Y+4.5, {align:'right'});
+    doc.text(item.precio.toFixed(2), COL.price.x+COL.price.w-2, Y+4.5, {align:'right'});
+    doc.text(lt.toFixed(2), W-M-2, Y+4.5, {align:'right'});
+    Y += rowH;
+  });
+  doc.setDrawColor(...LGRAY); doc.setLineWidth(.3);
+  doc.rect(M,Y-7*cart.length-7,W-M*2,7*cart.length+7,'S');
+  Y += 6;
+
+  const TW=85, TX=W-M-TW;
+  fr(TX,Y,TW,20,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,20,'S');
+  let TY=Y+8;
+  sf('bold',12); sc(DARK); doc.text('TOTAL RECIBIDO:',TX+4,TY); doc.text(fmtBs(total),TX+TW-3,TY,{align:'right'});
+  Y += 26;
+
+  if(Y<220){
+    ln(M,Y,W-M,Y); Y+=4; sf('normal',7); sc(GRAY);
+    doc.text('Este documento representa un comprobante de entrega y control interno de pago de la tienda. No constituye una factura fiscal.',M,Y,{maxWidth:W-M*2}); Y+=5;
+  }
+  
+  fr(0,265,W,12,DARK); sf('normal',6.5); sc([150,160,170]);
+  doc.text(`${EMPRESA.nombre} · ${EMPRESA.telefono}`,W/2,271,{align:'center'});
+  doc.text(`Generado el ${new Date().toLocaleString('es-VE')} · Nro. Control: ${invNro}`,W/2,274.5,{align:'center'});
+
+  doc.save(`Recibo_${invNro}_${clientName.replace(/\s+/g,'_').substring(0,20)}.pdf`);
+
+  invoiceCounter++;
+  document.getElementById('inv-num-label').innerHTML =
+    `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
+
+  cart = []; 
+  await loadProducts(); // Recargar productos para actualizar el inventario visualmente
+  renderCart();
+  btn.disabled = false;
+  showToast(`Pago registrado y recibo ${invNro} generado.`);
+}
   /* ── Guardar en Supabase ── */
   const { error: dbErr } = await sb.from('facturas').insert({
     user_id:        currentUserId,
