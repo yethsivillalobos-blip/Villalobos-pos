@@ -7,221 +7,134 @@
 <link rel="manifest" href="./manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-<!-- Importación del SDK de Seguridad (Supabase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root {
-    --bg-main: #08090a;
-    --bg-card: #111316;
-    --border-color: #242830;
-    --text-main: #f0f4f8;
-    --text-muted: #8b95a3;
-    --accent: #b8c0cc;
-    --radius: 16px;
-    --transition: 0.3s ease;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-main);
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-image: radial-gradient(circle at 50% 50%, #1a1d22 0%, #08090a 100%);
-  }
-  .login-wrapper {
-    display: flex;
-    width: 1000px;
-    height: 600px;
-    background: var(--bg-card);
-    border-radius: 24px;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
-    overflow: hidden;
-    position: relative;
-  }
-  .login-form-container {
-    width: 45%;
-    padding: 4rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-    background: var(--bg-card);
-  }
-  .brand-logo {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--text-main);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 3rem;
-    text-decoration: none;
-  }
-  .login-title { font-family: 'Space Grotesk', sans-serif; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
-  .login-subtitle { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 2rem; }
-  .input-group { margin-bottom: 1.25rem; position: relative; }
-  .input-label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .input-field {
-    width: 100%; background: var(--bg-main); border: 1px solid var(--border-color);
-    color: var(--text-main); padding: 0.875rem 1rem; border-radius: 8px;
-    font-size: 0.875rem; outline: none; transition: var(--transition); font-family: 'Inter', sans-serif;
-  }
-  .input-field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(184,192,204,0.1); }
-  .password-toggle {
-    position: absolute; right: 1rem; top: 2.1rem; background: none; border: none;
-    color: var(--text-muted); cursor: pointer; font-size: 1.1rem; transition: color var(--transition);
-  }
-  .password-toggle:hover { color: var(--text-main); }
-  .forgot-password {
-    display: block; text-align: right; font-size: 0.75rem; color: var(--text-muted);
-    text-decoration: none; margin-bottom: 2rem; margin-top: -0.5rem; transition: color var(--transition);
-  }
-  .forgot-password:hover { color: var(--text-main); }
-  .btn-submit {
-    width: 100%; background: var(--text-main); color: var(--bg-main); border: none;
-    padding: 0.875rem; border-radius: 8px; font-weight: 600; font-size: 0.9375rem;
-    cursor: pointer; transition: var(--transition); display: flex; justify-content: center;
-    align-items: center; gap: 0.5rem; font-family: 'Inter', sans-serif;
-  }
-  .btn-submit:hover:not(:disabled) { background: var(--accent); transform: translateY(-1px); }
-  .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
-  .login-visual {
-    width: 55%; position: relative;
-    background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
-  }
-  .login-visual::before {
-    content: ''; position: absolute; left: -1px; top: 0; bottom: 0; width: 120px;
-    background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C80,250 100,500 50,750 C10,900 0,1000 0,1000 L0,0 Z" fill="%23111316"/></svg>') no-repeat center left / 100% 100%;
-    z-index: 1; filter: drop-shadow(-10px 0 15px rgba(0,0,0,0.8));
-  }
-  .login-visual-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(17,19,22,0.4), rgba(8,9,10,0.8)); z-index: 0; }
-  .error-msg { color: #ff6b6b; font-size: 0.8rem; margin-top: 0.75rem; text-align: center; display: none; }
-  
-  @media (max-width: 850px) {
-    body { background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop') center/cover no-repeat; }
-    body::before { content: ''; position: absolute; inset: 0; background: rgba(8,9,10,0.6); z-index: 0; }
-    .login-wrapper { width: 90%; max-width: 400px; height: auto; background: transparent; box-shadow: none; z-index: 1; }
-    .login-visual { display: none; }
-    .login-form-container {
-      width: 100%; padding: 3rem 2rem;
-      background: rgba(17,19,22,0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-    }
+  :root{--bg-main:#08090a;--bg-card:#111316;--border-color:#242830;--text-main:#f0f4f8;--text-muted:#8b95a3;--accent:#b8c0cc;--transition:0.3s ease}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text-main);min-height:100vh;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(circle at 50% 50%,#1a1d22 0%,#08090a 100%)}
+  .login-wrapper{display:flex;width:1000px;height:600px;background:var(--bg-card);border-radius:24px;box-shadow:0 30px 60px rgba(0,0,0,.6);overflow:hidden;position:relative}
+  .login-form-container{width:45%;padding:4rem;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2;background:var(--bg-card)}
+  .brand-logo{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;letter-spacing:.1em;color:var(--text-main);display:flex;align-items:center;gap:.5rem;margin-bottom:3rem;text-decoration:none}
+  .login-title{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;margin-bottom:.5rem}
+  .login-subtitle{font-size:.875rem;color:var(--text-muted);margin-bottom:2rem}
+  .input-group{margin-bottom:1.25rem;position:relative}
+  .input-label{display:block;font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.05em}
+  .input-field{width:100%;background:var(--bg-main);border:1px solid var(--border-color);color:var(--text-main);padding:.875rem 1rem;border-radius:8px;font-size:.875rem;outline:none;transition:var(--transition);font-family:'Inter',sans-serif}
+  .input-field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,.1)}
+  .password-toggle{position:absolute;right:1rem;top:2.1rem;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.1rem;transition:color var(--transition)}
+  .password-toggle:hover{color:var(--text-main)}
+  .forgot-password{display:block;text-align:right;font-size:.75rem;color:var(--text-muted);text-decoration:none;margin-bottom:2rem;margin-top:-.5rem;transition:color var(--transition)}
+  .forgot-password:hover{color:var(--text-main)}
+  .btn-submit{width:100%;background:var(--text-main);color:var(--bg-main);border:none;padding:.875rem;border-radius:8px;font-weight:600;font-size:.9375rem;cursor:pointer;transition:var(--transition);display:flex;justify-content:center;align-items:center;gap:.5rem;font-family:'Inter',sans-serif}
+  .btn-submit:hover{background:var(--accent);transform:translateY(-1px)}
+  .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .login-visual{width:55%;position:relative;background:url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat}
+  .login-visual::before{content:'';position:absolute;left:-1px;top:0;bottom:0;width:120px;background:url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 1000" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 C80,250 100,500 50,750 C10,900 0,1000 0,1000 L0,0 Z" fill="%23111316"/></svg>') no-repeat center left/100% 100%;z-index:1;filter:drop-shadow(-10px 0 15px rgba(0,0,0,.8))}
+  .login-visual-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(17,19,22,.4),rgba(8,9,10,.8));z-index:0}
+  .msg{font-size:.8rem;margin-top:.75rem;text-align:center;display:none;padding:.5rem;border-radius:6px}
+  .msg.error{display:block;color:#ff6b6b;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2)}
+  .msg.success{display:block;color:#3ecf8e;background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.2)}
+  .spinner{width:16px;height:16px;border:2px solid var(--bg-main);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;display:none}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:850px){
+    body{background:url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800&auto=format&fit=crop') center/cover no-repeat}
+    body::before{content:'';position:absolute;inset:0;background:rgba(8,9,10,.6);z-index:0}
+    .login-wrapper{width:90%;max-width:400px;height:auto;background:transparent;box-shadow:none;z-index:1}
+    .login-visual{display:none}
+    .login-form-container{width:100%;padding:3rem 2rem;background:rgba(17,19,22,.65);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08);border-radius:24px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
   }
 </style>
 </head>
 <body>
-  <div class="login-wrapper">
-    <div class="login-form-container">
-      <a href="index.html" class="brand-logo">
-        <i class="ti ti-shield-lock" style="font-size: 1.5rem;"></i> VILLALOBOS
-      </a>
-      <h1 class="login-title">Ingresar</h1>
-      <p class="login-subtitle">Accede al panel de control y punto de venta.</p>
-      
-      <div class="input-group">
-        <label class="input-label">Correo Electrónico</label>
-        <input type="email" class="input-field" id="username" placeholder="operador@villalobos.com">
-      </div>
-      
-      <div class="input-group">
-        <label class="input-label">Contraseña</label>
-        <input type="password" class="input-field" id="pwd" placeholder="••••••••">
-        <button type="button" class="password-toggle" onclick="togglePassword()" aria-label="Mostrar contraseña">
-          <i class="ti ti-eye" id="eye-icon"></i>
-        </button>
-      </div>
-      
-      <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
-      
-      <button class="btn-submit" id="btn-login" onclick="doLogin()">
-        Entrar al Sistema <i class="ti ti-arrow-right"></i>
-      </button>
-      
-      <p class="error-msg" id="error-msg"></p>
+<div class="login-wrapper">
+  <div class="login-form-container">
+    <a href="#" class="brand-logo"><i class="ti ti-shield-lock" style="font-size:1.5rem"></i> VILLALOBOS</a>
+    <h1 class="login-title">Ingresar</h1>
+    <p class="login-subtitle">Accede al panel de control y punto de venta.</p>
+    <div class="input-group">
+      <label class="input-label">Correo Electrónico</label>
+      <input type="email" class="input-field" id="email" placeholder="operador@villalobos.com" autocomplete="email">
     </div>
-    <div class="login-visual"><div class="login-visual-overlay"></div></div>
+    <div class="input-group">
+      <label class="input-label">Contraseña</label>
+      <input type="password" class="input-field" id="pwd" placeholder="••••••••" autocomplete="current-password">
+      <button type="button" class="password-toggle" onclick="togglePwd()"><i class="ti ti-eye" id="eye-icon"></i></button>
+    </div>
+    <a href="#" class="forgot-password" onclick="resetPassword()">¿Olvidaste tu contraseña?</a>
+    <button class="btn-submit" id="btn-login" onclick="doLogin()">
+      <span id="btn-text">Entrar al Sistema</span>
+      <i class="ti ti-arrow-right" id="btn-icon"></i>
+      <div class="spinner" id="spinner"></div>
+    </button>
+    <p class="msg" id="msg"></p>
   </div>
+  <div class="login-visual"><div class="login-visual-overlay"></div></div>
+</div>
 
-  <script>
-    // 1. INICIALIZACIÓN DE SEGURIDAD
-    const { createClient } = supabase;
-    
-    // 👇 PEGA TUS CLAVES EXACTAMENTE AQUÍ, ENTRE LAS COMILLAS SIMPLES 👇
-    const supabaseUrl = 'sb_publishable_cEPFYIALrwsNf2S5fueOIg_QIyC40S6'; 
-    const supabaseKey = 'xOmyc07uz80dmyU6';
-    // 👆 ========================================================== 👆
-    
-    const db = createClient(supabaseUrl, supabaseKey);
+<script>
+  const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    // 2. FUNCIÓN DE VISIBILIDAD DE CONTRASEÑA
-    function togglePassword() {
-      const p = document.getElementById('pwd');
-      const e = document.getElementById('eye-icon');
-      if (p.type === 'password') { 
-        p.type = 'text'; e.classList.replace('ti-eye','ti-eye-off'); 
-      } else { 
-        p.type = 'password'; e.classList.replace('ti-eye-off','ti-eye'); 
-      }
+  // Si ya hay sesión activa, redirigir directo
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) window.location.replace('index.html');
+  })();
+
+  function togglePwd() {
+    const p = document.getElementById('pwd');
+    const e = document.getElementById('eye-icon');
+    p.type = p.type === 'password' ? 'text' : 'password';
+    e.classList.toggle('ti-eye'); e.classList.toggle('ti-eye-off');
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('btn-login');
+    btn.disabled = on;
+    document.getElementById('btn-text').textContent = on ? 'Verificando...' : 'Entrar al Sistema';
+    document.getElementById('btn-icon').style.display = on ? 'none' : 'inline';
+    document.getElementById('spinner').style.display  = on ? 'block' : 'none';
+  }
+
+  function showMsg(text, type = 'error') {
+    const el = document.getElementById('msg');
+    el.textContent = text;
+    el.className = 'msg ' + type;
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const pwd   = document.getElementById('pwd').value;
+    if (!email || !pwd) { showMsg('Completa correo y contraseña.'); return; }
+
+    setLoading(true);
+    const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+    setLoading(false);
+
+    if (error) {
+      const msgs = {
+        'Invalid login credentials': 'Correo o contraseña incorrectos.',
+        'Email not confirmed':       'Confirma tu correo antes de ingresar.',
+        'Too many requests':         'Demasiados intentos. Espera unos minutos.',
+      };
+      showMsg(msgs[error.message] || error.message);
+    } else {
+      showMsg('Acceso correcto. Redirigiendo...', 'success');
+      setTimeout(() => window.location.replace('index.html'), 800);
     }
+  }
 
-    // 3. LÓGICA CRIPTOGRÁFICA Y DEPURACIÓN
-    async function doLogin() {
-      const email = document.getElementById('username').value.trim();
-      const password = document.getElementById('pwd').value;
-      const err = document.getElementById('error-msg');
-      const btn = document.getElementById('btn-login');
+  async function resetPassword() {
+    const email = document.getElementById('email').value.trim();
+    if (!email) { showMsg('Escribe tu correo primero.'); return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email,
+      { redirectTo: window.location.origin + '/login.html' });
+    if (error) showMsg(error.message);
+    else showMsg('Revisa tu correo para restablecer la contraseña.', 'success');
+  }
 
-      if (!email || !password) { 
-        err.textContent = 'Por favor, completa ambos campos.';
-        err.style.display = 'block'; 
-        return; 
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = '<i class="ti ti-loader"></i> Validando...';
-      err.style.display = 'none';
-
-      try {
-        const { data, error } = await db.auth.signInWithPassword({
-          email: email,
-          password: password,
-        });
-
-        if (error) {
-          // Imprime el error exacto que devuelve la base de datos
-          err.textContent = 'ERROR REAL: ' + error.message;
-          err.style.display = 'block';
-          btn.disabled = false;
-          btn.innerHTML = 'Entrar al Sistema <i class="ti ti-arrow-right"></i>';
-        } else {
-          window.location.href = 'app.html';
-        }
-      } catch (e) {
-        // Atrapa errores de red o del navegador
-        err.textContent = 'FALLO DE SISTEMA: ' + e.message;
-        err.style.display = 'block';
-        btn.disabled = false;
-        btn.innerHTML = 'Entrar al Sistema <i class="ti ti-arrow-right"></i>';
-      }
-    }
-
-    // 4. EVENTOS ADICIONALES
-    document.addEventListener('keydown', e => { 
-      if (e.key === 'Enter') doLogin(); 
-    });
-    
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
-      });
-    }
-  </script>
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
 </body>
 </html>
