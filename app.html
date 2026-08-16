@@ -73,9 +73,7 @@
   .remove-btn:hover{opacity:1}
   .invoice-totals{padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--bg-card2);flex-shrink:0}
   .total-row{display:flex;justify-content:space-between;font-size:.8rem;padding:.2rem 0}
-  .total-row.label{color:var(--muted)}
-  .total-row.iva{color:var(--yellow)}
-  .total-row.bold{font-weight:700;font-size:1rem;padding-top:.5rem;border-top:1px solid var(--border);margin-top:.4rem}
+  .total-row.bold{font-weight:700;font-size:1rem;padding-top:.5rem;margin-top:.4rem}
   .payment-section{padding:.75rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
   .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
   .btn-generate{background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
@@ -117,7 +115,6 @@
 </header>
 
 <div class="pos-layout">
-  <!-- CATÁLOGO -->
   <section class="products-panel">
     <div class="panel-header">
       <input type="text" class="search-box" id="search-input" placeholder="Buscar producto..." oninput="filterProducts()">
@@ -128,41 +125,33 @@
     </div>
   </section>
 
-  <!-- FACTURA -->
   <aside class="invoice-panel">
     <div class="invoice-header">
-      <div class="invoice-title">Factura <span id="inv-type-label">Fiscal</span></div>
+      <div class="invoice-title">Registro <span id="inv-type-label">Nota de Entrega</span></div>
       <div class="invoice-num" id="inv-num-label">Nro. 00000001 · <span id="inv-date"></span></div>
     </div>
     <div class="client-section">
       <div class="field-row">
         <div>
-          <div class="field-label">Tipo Contribuyente</div>
+          <div class="field-label">Tipo ID</div>
           <select class="field-input" id="client-type">
-            <option value="J">J – Jurídico</option>
             <option value="V">V – Natural</option>
+            <option value="J">J – Jurídico</option>
             <option value="E">E – Extranjero</option>
-            <option value="G">G – Gobierno</option>
             <option value="P">P – Pasaporte</option>
           </select>
         </div>
         <div>
-          <div class="field-label">RIF / Cédula</div>
-          <input type="text" class="field-input" id="client-rif" placeholder="12345678-9">
+          <div class="field-label">Cédula / RIF</div>
+          <input type="text" class="field-input" id="client-rif" placeholder="12345678">
         </div>
       </div>
       <div style="margin-bottom:.5rem">
-        <div class="field-label">Razón Social / Nombre</div>
+        <div class="field-label">Nombre del Cliente</div>
         <input type="text" class="field-input" id="client-name" placeholder="Cliente de Contado">
       </div>
       <div class="field-row">
-        <div>
-          <div class="field-label">Tipo Documento</div>
-          <select class="field-input" id="invoice-type" onchange="updateInvType()">
-            <option value="FACTURA">Factura</option>
-            <option value="NOTA_ENTREGA">Nota Entrega</option>
-          </select>
-        </div>
+        <input type="hidden" id="invoice-type" value="NOTA_ENTREGA">
         <div>
           <div class="field-label">Forma de Pago</div>
           <select class="field-input" id="pay-method">
@@ -179,13 +168,10 @@
       <div class="cart-empty"><i class="ti ti-shopping-cart"></i><p>Selecciona productos del catálogo.</p></div>
     </div>
     <div class="invoice-totals">
-      <div class="total-row label"><span>Base Imponible</span><span id="t-subtotal">Bs. 0,00</span></div>
-      <div class="total-row label"><span>Exento</span><span id="t-exempt">Bs. 0,00</span></div>
-      <div class="total-row iva"><span>IVA (16%)</span><span id="t-iva">Bs. 0,00</span></div>
-      <div class="total-row bold"><span>TOTAL A PAGAR</span><span id="t-total">Bs. 0,00</span></div>
+      <div class="total-row bold"><span>TOTAL RECIBIDO</span><span id="t-total">Bs. 0,00</span></div>
     </div>
     <div class="payment-section">
-     <div class="action-row">
+      <div class="action-row">
         <button class="btn-generate" id="btn-factura" onclick="registrarPago()">
           <i class="ti ti-check"></i> Registrar Pago
         </button>
@@ -195,7 +181,6 @@
   </aside>
 </div>
 
-<!-- MODAL PRODUCTO -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-package"></i> <span id="modal-title-text">Agregar Producto</span></div>
@@ -215,7 +200,7 @@
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Precio (Bs.) *</label>
+        <label class="form-label">Precio Neto (Bs.) *</label>
         <input type="number" class="form-input" id="p-price" placeholder="0.00" step="0.01" min="0">
       </div>
       <div class="form-group">
@@ -223,30 +208,10 @@
         <input type="number" class="form-input" id="p-stock" placeholder="0" min="0">
       </div>
     </div>
-    <div class="form-row">
+    <div class="form-row" style="display: none;">
       <div class="form-group">
-        <label class="form-label">Unidad de Medida</label>
-        <select class="form-input" id="p-unit">
-          <option value="UND">Unidad (UND)</option>
-          <option value="KG">Kilogramo (KG)</option>
-          <option value="GR">Gramos (GR)</option>
-          <option value="LT">Litro (LT)</option>
-          <option value="ML">Mililitro (ML)</option>
-          <option value="CJ">Caja (CJ)</option>
-          <option value="PAQ">Paquete (PAQ)</option>
-          <option value="DOC">Docena (DOC)</option>
-          <option value="M2">Metro Cuadrado (M2)</option>
-          <option value="M">Metro (M)</option>
-          <option value="SRV">Servicio (SRV)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Tipo Fiscal</label>
-        <select class="form-input" id="p-tax">
-          <option value="gravado">Gravado (IVA 16%)</option>
-          <option value="exento">Exento de IVA</option>
-          <option value="exonerado">Exonerado de IVA</option>
-        </select>
+        <input type="hidden" id="p-unit" value="UND">
+        <input type="hidden" id="p-tax" value="exento">
       </div>
     </div>
     <div class="modal-actions">
@@ -259,32 +224,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════
-   SUPABASE + CONFIGURACIÓN
-═══════════════════════════════════════ */
 const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const EMPRESA = {
-  nombre: 'VILLALOBOS',
-  rif:    'J-24194123-6',
-  direccion: 'Calle 31 Sur, URB. VISTA REAL, Casa 15, El Tigre, Venezuela',
-  telefono:  '+58 4249130826',
-  email:     'pichondev9@gmail.com,
-  nroContrib:'SNAT-2024-DS-001234'
+  nombre: 'VILLALOBOS, C.A.',
+  direccion: 'Tu Tienda Online - Envíos Nacionales',
+  telefono: '+58 414-0000000',
+  email: 'ventas@villalobos.com'
 };
 
 const IVA = 0.16;
-let products = [];       // caché local de productos desde Supabase
-let cart     = [];
+let products = [];
+let cart = [];
 let invoiceCounter = 1;
 let editingId = null;
 let currentUserId = null;
 
-/* ═══════════════════════════════════════
-   HELPERS
-═══════════════════════════════════════ */
 const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const isGravado = t => { const k=(t||'').toLowerCase(); return k==='gravado'||k.includes('16%'); };
 const formatDate = d => d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -296,49 +253,33 @@ function showToast(msg, type='success') {
 }
 
 function updateClock() {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 setInterval(updateClock, 1000); updateClock();
 document.getElementById('inv-date').textContent = formatDate(new Date());
-
-function updateInvType() {
-  const v = document.getElementById('invoice-type').value;
-  document.getElementById('inv-type-label').textContent = v === 'FACTURA' ? 'Fiscal' : 'Nota de Entrega';
-}
 
 async function doLogout() {
   await sb.auth.signOut();
   window.location.replace('login.html');
 }
 
-/* ═══════════════════════════════════════
-   INIT — verificar sesión y cargar datos
-═══════════════════════════════════════ */
 async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('login.html'); return; }
   currentUserId = session.user.id;
 
-  // Obtener nro de factura (último de la BD + 1)
-  const { data: lastInv } = await sb.from('facturas')
-    .select('nro_factura').order('created_at',{ascending:false}).limit(1);
+  const { data: lastInv } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
   if (lastInv && lastInv.length > 0) {
     const last = parseInt(lastInv[0].nro_factura) || 0;
     invoiceCounter = last + 1;
   }
-  document.getElementById('inv-num-label').innerHTML =
-    `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
+  document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
 
   await loadProducts();
 }
 
-/* ═══════════════════════════════════════
-   PRODUCTOS — Supabase CRUD
-═══════════════════════════════════════ */
 async function loadProducts() {
-  const { data, error } = await sb.from('productos')
-    .select('*').eq('activo', true).order('nombre');
+  const { data, error } = await sb.from('productos').select('*').eq('activo', true).order('nombre');
   if (error) { showToast('Error al cargar productos: ' + error.message, 'error'); return; }
   products = data || [];
   renderProducts();
@@ -351,39 +292,26 @@ function filterProducts() {
 
 function renderProducts(filter = '') {
   const grid = document.getElementById('products-grid');
-  const list = filter
-    ? products.filter(p =>
-        p.nombre.toLowerCase().includes(filter) ||
-        (p.categoria||'').toLowerCase().includes(filter) ||
-        (p.codigo||'').toLowerCase().includes(filter))
-    : products;
+  const list = filter ? products.filter(p => p.nombre.toLowerCase().includes(filter) || (p.categoria||'').toLowerCase().includes(filter) || (p.codigo||'').toLowerCase().includes(filter)) : products;
 
   if (list.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><i class="ti ti-package"></i>
-      <p>${products.length === 0
-        ? 'No hay productos.<br>Agrega el primero con el botón <strong>+ Producto</strong>.'
-        : 'Sin resultados para tu búsqueda.'}</p></div>`;
+    grid.innerHTML = `<div class="empty-state"><i class="ti ti-package"></i><p>${products.length === 0 ? 'No hay productos.<br>Agrega el primero con el botón <strong>+ Producto</strong>.' : 'Sin resultados para tu búsqueda.'}</p></div>`;
     return;
   }
 
   grid.innerHTML = list.map(p => {
-    const sc = p.stock === 0 ? 'out' : p.stock < 5 ? 'low' : '';
-    const sl = p.stock === 0 ? 'Sin stock' : p.stock < 5 ? `${p.stock} rest.` : `${p.stock} uds.`;
-    const taxBadge = p.tipo_fiscal !== 'gravado'
-      ? `<span style="font-size:.6rem;background:rgba(255,209,102,.1);color:var(--yellow);border-radius:3px;padding:.1rem .3rem;margin-left:.25rem">${p.tipo_fiscal}</span>` : '';
-    const clickFn = p.stock === 0 ? `showToast('Sin stock','error')` : `addToCart(${p.id})`;
+    const sc = p.stock === 0 ? 'out' : p.stock <= 2 ? 'low' : '';
+    const sl = p.stock === 0 ? 'Agotado' : p.stock <= 2 ? `${p.stock} rest.` : `${p.stock} uds.`;
+    const clickFn = p.stock === 0 ? `showToast('Producto agotado','error')` : `addToCart(${p.id})`;
     return `
       <div class="product-card${p.stock===0?' out-of-stock':''}" onclick="${clickFn}" title="${p.nombre}" style="${p.stock===0?'opacity:.45;cursor:not-allowed':''}">
         <span class="stock-badge ${sc}">${sl}</span>
         <div class="product-tag">${p.categoria||'General'} · ${p.codigo||''}</div>
-        <div class="product-name">${p.nombre}${taxBadge}</div>
+        <div class="product-name">${p.nombre}</div>
         <div class="product-price">${fmtBs(p.precio)}</div>
-        <div class="product-price-unit">por ${p.unidad||'UND'}</div>
         <div style="display:flex;gap:.4rem;margin-top:.6rem">
-          <button class="btn-sm secondary" style="font-size:.65rem;padding:.25rem .5rem;flex:1"
-            onclick="event.stopPropagation();openModal(${p.id})"><i class="ti ti-edit"></i> Editar</button>
-          <button class="btn-sm danger" style="font-size:.65rem;padding:.25rem .5rem"
-            onclick="event.stopPropagation();deleteProduct(${p.id})"><i class="ti ti-trash"></i></button>
+          <button class="btn-sm secondary" style="font-size:.65rem;padding:.25rem .5rem;flex:1" onclick="event.stopPropagation();openModal(${p.id})"><i class="ti ti-edit"></i> Editar</button>
+          <button class="btn-sm danger" style="font-size:.65rem;padding:.25rem .5rem" onclick="event.stopPropagation();deleteProduct(${p.id})"><i class="ti ti-trash"></i></button>
         </div>
       </div>`;
   }).join('');
@@ -399,15 +327,10 @@ function openModal(id = null) {
     document.getElementById('p-code').value  = p.codigo || '';
     document.getElementById('p-price').value = p.precio;
     document.getElementById('p-stock').value = p.stock;
-    document.getElementById('p-unit').value  = p.unidad || 'UND';
-    document.getElementById('p-tax').value   = p.tipo_fiscal || 'gravado';
   } else {
     ['p-name','p-cat','p-code','p-price','p-stock'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('p-unit').value = 'UND';
-    document.getElementById('p-tax').value  = 'gravado';
   }
   document.getElementById('modal-overlay').classList.add('open');
-  setTimeout(() => document.getElementById('p-name').focus(), 150);
 }
 
 function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId = null; }
@@ -424,8 +347,8 @@ async function saveProduct() {
     codigo:      document.getElementById('p-code').value.trim() || ('ART-' + String(Date.now()).slice(-4)),
     precio,
     stock:       parseInt(document.getElementById('p-stock').value) || 0,
-    unidad:      document.getElementById('p-unit').value,
-    tipo_fiscal: document.getElementById('p-tax').value,
+    unidad:      'UND',
+    tipo_fiscal: 'exento',
     activo:      true,
     user_id:     currentUserId,
   };
@@ -453,10 +376,7 @@ async function deleteProduct(id) {
   await loadProducts();
 }
 
-/* ═══════════════════════════════════════
-   CARRITO
-═══════════════════════════════════════ */
-  function addToCart(id) {
+function addToCart(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
   const currentQty = ex ? ex.qty : 0;
@@ -470,14 +390,12 @@ async function deleteProduct(id) {
     showToast('Alerta de inventario: Quedan ' + (p.stock - currentQty - 1) + ' unidades de ' + p.nombre, 'error');
   }
 
-  if (ex) ex.qty++;
-  else cart.push({ ...p, qty: 1 });
+  if (ex) ex.qty++; else cart.push({ ...p, qty: 1 });
   renderCart();
   showToast(`"${p.nombre}" agregado.`);
 }
 
 function changeQty(id, delta) {
-  
   const p = products.find(x => x.id === id);
   const item = cart.find(x => x.id === id);
   if (!item) return;
@@ -497,12 +415,9 @@ function changeQty(id, delta) {
   if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
   renderCart();
 }
+
 function removeFromCart(id) { cart = cart.filter(x => x.id !== id); renderCart(); }
-function clearCart() {
-  if (cart.length === 0) return;
-  if (!confirm('¿Limpiar la factura actual?')) return;
-  cart = []; renderCart();
-}
+function clearCart() { if (cart.length === 0) return; if (!confirm('¿Limpiar la venta actual?')) return; cart = []; renderCart(); }
 
 function renderCart() {
   const container = document.getElementById('cart-items');
@@ -512,12 +427,11 @@ function renderCart() {
   }
   container.innerHTML = cart.map(item => {
     const lt = item.precio * item.qty;
-    const taxLabel = isGravado(item.tipo_fiscal) ? 'IVA 16%' : item.tipo_fiscal;
     return `
       <div class="cart-item">
         <div class="cart-item-info">
           <div class="cart-item-name">${item.nombre}</div>
-          <div class="cart-item-price">${fmtBs(item.precio)} / ${item.unidad||'UND'} · ${taxLabel}</div>
+          <div class="cart-item-price">${fmtBs(item.precio)} c/u</div>
         </div>
         <div class="cart-item-controls">
           <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
@@ -530,25 +444,16 @@ function renderCart() {
   }).join('');
 
   let base = 0, exempt = 0;
-  cart.forEach(i => {
-    const lt = i.precio * i.qty;
-    if (isGravado(i.tipo_fiscal)) base += lt; else exempt += lt;
-  });
+  cart.forEach(i => { const lt = i.precio * i.qty; if (isGravado(i.tipo_fiscal)) base += lt; else exempt += lt; });
   updateTotals(base, exempt);
 }
 
 function updateTotals(base, exempt) {
   const iva = base * IVA;
-  document.getElementById('t-subtotal').textContent = fmtBs(base);
-  document.getElementById('t-exempt').textContent   = fmtBs(exempt);
-  document.getElementById('t-iva').textContent      = fmtBs(iva);
-  document.getElementById('t-total').textContent    = fmtBs(base + exempt + iva);
+  document.getElementById('t-total').textContent = fmtBs(base + exempt + iva);
 }
 
-/* ═══════════════════════════════════════
-   GENERAR PDF + GUARDAR EN SUPABASE
-═══════════════════════════════════════ */
-  async function registrarPago() {
+async function registrarPago() {
   if (cart.length === 0) { showToast('Agrega productos al registro.','error'); return; }
   const btn = document.getElementById('btn-factura');
   btn.disabled = true;
@@ -557,18 +462,14 @@ function updateTotals(base, exempt) {
   const clientType = document.getElementById('client-type').value;
   const clientRif  = document.getElementById('client-rif').value.trim() || '00000000';
   const payMethod  = document.getElementById('pay-method').value;
-  const invType    = document.getElementById('invoice-type').value; // Factura o Nota Entrega
+  const invType    = 'NOTA_ENTREGA';
 
   let base = 0, exempt = 0;
-  cart.forEach(i => {
-    const lt = i.precio * i.qty;
-    if (isGravado(i.tipo_fiscal)) base += lt; else exempt += lt;
-  });
-  const iva   = base * IVA;
+  cart.forEach(i => { const lt = i.precio * i.qty; if (isGravado(i.tipo_fiscal)) base += lt; else exempt += lt; });
+  const iva = base * IVA;
   const total = base + exempt + iva;
   const invNro = String(invoiceCounter).padStart(8,'0');
 
-  /* ── Guardar Venta en Supabase ── */
   const { error: dbErr } = await sb.from('facturas').insert({
     user_id:        currentUserId,
     nro_factura:    invNro,
@@ -586,7 +487,6 @@ function updateTotals(base, exempt) {
   });
   if (dbErr) { showToast('Error al guardar registro: ' + dbErr.message,'error'); btn.disabled = false; return; }
 
-  /* ── Descontar Inventario en Supabase ── */
   for (const item of cart) {
     const p = products.find(x => x.id === item.id);
     if (p) {
@@ -595,7 +495,6 @@ function updateTotals(base, exempt) {
     }
   }
 
-  /* ── Generar PDF (Formato de Recibo / Nota de Entrega) ── */
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
   const W = 215.9, M = 15;
@@ -629,10 +528,10 @@ function updateTotals(base, exempt) {
   doc.text(`Emisión: ${formatDate(new Date())}`, W-M-4, Y+11, {align:'right'});
   Y += 27;
 
-  const COL={num:{x:M,w:10},code:{x:M+10,w:22},name:{x:M+32,w:72},unit:{x:M+104,w:14},qty:{x:M+118,w:16},price:{x:M+134,w:24},total:{x:M+158,w:W-M-M-158}};
+  const COL={num:{x:M,w:10},code:{x:M+10,w:22},name:{x:M+32,w:72},qty:{x:M+104,w:16},price:{x:M+120,w:28},total:{x:M+148,w:W-M-M-148}};
   fr(M,Y,W-M*2,7,DARK); sf('bold',7); sc(WHITE);
   doc.text('#',COL.num.x+2,Y+4.5); doc.text('CÓDIGO',COL.code.x+1,Y+4.5);
-  doc.text('DESCRIPCIÓN',COL.name.x+1,Y+4.5); doc.text('UND',COL.unit.x+1,Y+4.5);
+  doc.text('DESCRIPCIÓN',COL.name.x+1,Y+4.5);
   doc.text('CANT.',COL.qty.x+1,Y+4.5); doc.text('P. UNIT.',COL.price.x+1,Y+4.5);
   doc.text('TOTAL',COL.total.x+1,Y+4.5);
   Y += 7;
@@ -646,7 +545,6 @@ function updateTotals(base, exempt) {
     doc.text(String(idx+1), COL.num.x+2, Y+4.5);
     doc.text((item.codigo||'').substring(0,10), COL.code.x+1, Y+4.5);
     doc.text(item.nombre.length>40?item.nombre.substring(0,38)+'…':item.nombre, COL.name.x+1, Y+4.5);
-    doc.text(item.unidad||'UND', COL.unit.x+1, Y+4.5);
     doc.text(String(item.qty), COL.qty.x+COL.qty.w-2, Y+4.5, {align:'right'});
     doc.text(item.precio.toFixed(2), COL.price.x+COL.price.w-2, Y+4.5, {align:'right'});
     doc.text(lt.toFixed(2), W-M-2, Y+4.5, {align:'right'});
@@ -657,10 +555,10 @@ function updateTotals(base, exempt) {
   Y += 6;
 
   const TW=85, TX=W-M-TW;
-  fr(TX,Y,TW,20,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,20,'S');
-  let TY=Y+8;
+  fr(TX,Y,TW,15,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,15,'S');
+  let TY=Y+9;
   sf('bold',12); sc(DARK); doc.text('TOTAL RECIBIDO:',TX+4,TY); doc.text(fmtBs(total),TX+TW-3,TY,{align:'right'});
-  Y += 26;
+  Y += 21;
 
   if(Y<220){
     ln(M,Y,W-M,Y); Y+=4; sf('normal',7); sc(GRAY);
@@ -674,136 +572,15 @@ function updateTotals(base, exempt) {
   doc.save(`Recibo_${invNro}_${clientName.replace(/\s+/g,'_').substring(0,20)}.pdf`);
 
   invoiceCounter++;
-  document.getElementById('inv-num-label').innerHTML =
-    `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
+  document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
 
   cart = []; 
-  await loadProducts(); // Recargar productos para actualizar el inventario visualmente
+  await loadProducts(); 
   renderCart();
   btn.disabled = false;
   showToast(`Pago registrado y recibo ${invNro} generado.`);
 }
-  /* ── Guardar en Supabase ── */
-  const { error: dbErr } = await sb.from('facturas').insert({
-    user_id:        currentUserId,
-    nro_factura:    invNro,
-    tipo_doc:       invType,
-    cliente_nombre: clientName,
-    cliente_tipo:   clientType,
-    cliente_rif:    clientRif,
-    forma_pago:     payMethod,
-    items:          cart.map(i => ({ id:i.id, nombre:i.nombre, codigo:i.codigo, precio:i.precio, qty:i.qty, unidad:i.unidad, tipo_fiscal:i.tipo_fiscal })),
-    subtotal:       parseFloat(base.toFixed(2)),
-    monto_exento:   parseFloat(exempt.toFixed(2)),
-    iva:            parseFloat(iva.toFixed(2)),
-    total:          parseFloat(total.toFixed(2)),
-    fecha:          (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0],
-  if (dbErr) { showToast('Error al guardar factura: ' + dbErr.message,'error'); btn.disabled = false; return; }
 
-  /* ── Generar PDF ── */
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
-  const W = 215.9, M = 15;
-  const BLACK=[0,0,0], DARK=[20,22,26], GRAY=[100,110,120], LGRAY=[200,205,210], WHITE=[255,255,255], ABGD=[240,244,248];
-
-  const sf = (style='normal',size=10) => { doc.setFont('Helvetica',style); doc.setFontSize(size); };
-  const sc = rgb => doc.setTextColor(...rgb);
-  const ln = (x1,y1,x2,y2,r=LGRAY,w=.3) => { doc.setDrawColor(...r); doc.setLineWidth(w); doc.line(x1,y1,x2,y2); };
-  const fr = (x,y,w,h,c) => { doc.setFillColor(...c); doc.rect(x,y,w,h,'F'); };
-
-  let Y = 0;
-  fr(0,0,W,38,DARK);
-  sf('bold',18); sc(WHITE); doc.text(EMPRESA.nombre, M, 14);
-  sf('normal',8); sc([180,190,200]);
-  doc.text(`RIF: ${EMPRESA.rif}`, M, 20);
-  doc.text(EMPRESA.direccion, M, 25, {maxWidth: W-M-70});
-  doc.text(`Telf: ${EMPRESA.telefono}  |  ${EMPRESA.email}`, M, 30);
-  doc.text(`Nro. Contribuyente SENIAT: ${EMPRESA.nroContrib}`, M, 35);
-  sf('bold',14); sc(WHITE); doc.text(invType==='FACTURA'?'FACTURA':'NOTA DE ENTREGA', W-M, 14, {align:'right'});
-  sf('normal',9); sc([180,190,200]);
-  doc.text(`Nro.: ${invNro}`, W-M, 20, {align:'right'});
-  doc.text(`Fecha: ${formatDate(new Date())}`, W-M, 26, {align:'right'});
-  doc.text(`Control: ${invNro}`, W-M, 32, {align:'right'});
-  Y = 44;
-
-  fr(M,Y,W-M*2,22,ABGD);
-  doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(M,Y,W-M*2,22,'S');
-  sf('bold',8); sc(GRAY); doc.text('DATOS DEL CLIENTE', M+4, Y+5);
-  sf('bold',9); sc(DARK); doc.text(clientName.toUpperCase(), M+4, Y+11);
-  sf('normal',8); sc(GRAY);
-  doc.text(`RIF/Cédula: ${clientType}-${clientRif}`, M+4, Y+16);
-  doc.text(`Forma de Pago: ${payMethod}`, M+4, Y+21);
-  doc.text(`Emisión: ${formatDate(new Date())}`, W-M-4, Y+11, {align:'right'});
-  doc.text('Condición: CONTADO', W-M-4, Y+16, {align:'right'});
-  Y += 27;
-
-  const COL={num:{x:M,w:10},code:{x:M+10,w:22},name:{x:M+32,w:72},unit:{x:M+104,w:14},qty:{x:M+118,w:16},price:{x:M+134,w:24},tax:{x:M+158,w:14},total:{x:M+172,w:W-M-M-172}};
-  fr(M,Y,W-M*2,7,DARK); sf('bold',7); sc(WHITE);
-  doc.text('#',COL.num.x+2,Y+4.5); doc.text('CÓDIGO',COL.code.x+1,Y+4.5);
-  doc.text('DESCRIPCIÓN',COL.name.x+1,Y+4.5); doc.text('UND',COL.unit.x+1,Y+4.5);
-  doc.text('CANT.',COL.qty.x+1,Y+4.5); doc.text('P. UNIT.',COL.price.x+1,Y+4.5);
-  doc.text('ALÍC.',COL.tax.x+1,Y+4.5); doc.text('TOTAL',COL.total.x+1,Y+4.5);
-  Y += 7;
-
-  sf('normal',7.5);
-  cart.forEach((item,idx) => {
-    const rowH=7, bg=idx%2===0?WHITE:[246,248,250];
-    fr(M,Y,W-M*2,rowH,bg); ln(M,Y+rowH,M+W-M*2,Y+rowH);
-    sc(DARK);
-    const lt = item.precio * item.qty;
-    const alic = isGravado(item.tipo_fiscal) ? '16%' : (item.tipo_fiscal||'').includes('exonerado') ? 'EXO' : 'E';
-    doc.text(String(idx+1), COL.num.x+2, Y+4.5);
-    doc.text((item.codigo||'').substring(0,10), COL.code.x+1, Y+4.5);
-    doc.text(item.nombre.length>40?item.nombre.substring(0,38)+'…':item.nombre, COL.name.x+1, Y+4.5);
-    doc.text(item.unidad||'UND', COL.unit.x+1, Y+4.5);
-    doc.text(String(item.qty), COL.qty.x+COL.qty.w-2, Y+4.5, {align:'right'});
-    doc.text(item.precio.toFixed(2), COL.price.x+COL.price.w-2, Y+4.5, {align:'right'});
-    doc.text(alic, COL.tax.x+COL.tax.w-2, Y+4.5, {align:'right'});
-    doc.text(lt.toFixed(2), W-M-2, Y+4.5, {align:'right'});
-    Y += rowH;
-  });
-  doc.setDrawColor(...LGRAY); doc.setLineWidth(.3);
-  doc.rect(M,Y-7*cart.length-7,W-M*2,7*cart.length+7,'S');
-  Y += 6;
-
-  const TW=85, TX=W-M-TW;
-  fr(TX,Y,TW,38,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,38,'S');
-  let TY=Y+5;
-  [{l:'Base Imponible:',v:fmtBs(base)},{l:'Monto Exento:',v:fmtBs(exempt)},{l:'IVA (Alíc. 16%):',v:fmtBs(iva)}].forEach(r=>{
-    sf('normal',8.5); sc(GRAY); doc.text(r.l,TX+4,TY); sc(DARK); doc.text(r.v,TX+TW-3,TY,{align:'right'}); TY+=6;
-  });
-  ln(TX+3,TY,TX+TW-3,TY,LGRAY,.4); TY+=4;
-  sf('bold',10); sc(DARK); doc.text('TOTAL A PAGAR:',TX+4,TY); doc.text(fmtBs(total),TX+TW-3,TY,{align:'right'});
-  Y += 44;
-
-  if(Y<220){
-    ln(M,Y,W-M,Y); Y+=4; sf('normal',6.5); sc(GRAY);
-    doc.text('Documento fiscal emitido conforme a las disposiciones de la Ley del IVA, Providencia SNAT/2011/0071 y la Ley de ISLR vigente en la R.B. de Venezuela.',M,Y,{maxWidth:W-M*2}); Y+=5;
-    doc.text(`ALÍC. GENERAL IVA: 16% | ALÍC. REDUCIDA: 8% | EXENTOS: Art. 18 Ley IVA | Forma de Pago: ${payMethod}`,M,Y); Y+=5;
-  }
-  if(Y<240){
-    sf('normal',8); sc(GRAY);
-    ln(M,Y+16,M+60,Y+16,LGRAY,.3); doc.text('Firma Autorizada',M,Y+20);
-    ln(W-M-60,Y+16,W-M,Y+16,LGRAY,.3); doc.text('Sello de la Empresa',W-M,Y+20,{align:'right'});
-  }
-  fr(0,265,W,12,DARK); sf('normal',6.5); sc([150,160,170]);
-  doc.text(`${EMPRESA.nombre} · RIF: ${EMPRESA.rif} · ${EMPRESA.telefono}`,W/2,271,{align:'center'});
-  doc.text(`Generado el ${new Date().toLocaleString('es-VE')} · Nro. Factura: ${invNro}`,W/2,274.5,{align:'center'});
-
-  doc.save(`Factura_${invNro}_${clientName.replace(/\s+/g,'_').substring(0,20)}.pdf`);
-
-  invoiceCounter++;
-  document.getElementById('inv-num-label').innerHTML =
-    `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
-
-  cart = []; renderCart();
-  btn.disabled = false;
-  showToast(`Factura ${invNro} generada y guardada.`);
-}
-
-/* ═══════════════════════════════════════
-   ARRANQUE
-═══════════════════════════════════════ */
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 init();
 </script>
