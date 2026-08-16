@@ -456,9 +456,20 @@ async function deleteProduct(id) {
 /* ═══════════════════════════════════════
    CARRITO
 ═══════════════════════════════════════ */
-function addToCart(id) {
+  function addToCart(id) {
   const p = products.find(x => x.id === id);
   const ex = cart.find(x => x.id === id);
+  const currentQty = ex ? ex.qty : 0;
+
+  if (currentQty >= p.stock) {
+    showToast('Stock insuficiente. Solo quedan ' + p.stock + ' unidades disponibles.', 'error');
+    return;
+  }
+
+  if (p.stock - currentQty - 1 <= 2) {
+    showToast('Alerta de inventario: Quedan ' + (p.stock - currentQty - 1) + ' unidades de ' + p.nombre, 'error');
+  }
+
   if (ex) ex.qty++;
   else cart.push({ ...p, qty: 1 });
   renderCart();
@@ -466,13 +477,26 @@ function addToCart(id) {
 }
 
 function changeQty(id, delta) {
+  
+  const p = products.find(x => x.id === id);
   const item = cart.find(x => x.id === id);
   if (!item) return;
-  item.qty += delta;
+
+  const newQty = item.qty + delta;
+
+  if (newQty > p.stock) {
+    showToast('No puedes agregar más. Stock máximo alcanzado (' + p.stock + ').', 'error');
+    return;
+  }
+
+  if (p.stock - newQty <= 2 && delta > 0) {
+    showToast('Alerta de inventario: Quedan ' + (p.stock - newQty) + ' unidades de ' + p.nombre, 'error');
+  }
+
+  item.qty = newQty;
   if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
   renderCart();
 }
-
 function removeFromCart(id) { cart = cart.filter(x => x.id !== id); renderCart(); }
 function clearCart() {
   if (cart.length === 0) return;
