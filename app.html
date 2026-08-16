@@ -267,11 +267,11 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const EMPRESA = {
-  nombre: 'VILLALOBOS, C.A.',
-  rif:    'J-12345678-9',
-  direccion: 'Av. Libertador, Edificio Centro Comercial, Local 10, Caracas, Venezuela',
-  telefono:  '+58 212-555-0100',
-  email:     'ventas@villalobos.com.ve',
+  nombre: 'VILLALOBOS',
+  rif:    'J-24194123-6',
+  direccion: 'Calle 31 Sur, URB. VISTA REAL, Casa 15, El Tigre, Venezuela',
+  telefono:  '+58 4249130826',
+  email:     'pichondev9@gmail.com,
   nroContrib:'SNAT-2024-DS-001234'
 };
 
@@ -558,8 +558,7 @@ async function generatePDF() {
     monto_exento:   parseFloat(exempt.toFixed(2)),
     iva:            parseFloat(iva.toFixed(2)),
     total:          parseFloat(total.toFixed(2)),
-    fecha:          new Date().toISOString().split('T')[0],
-  });
+    fecha:          (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0],
   if (dbErr) { showToast('Error al guardar factura: ' + dbErr.message,'error'); btn.disabled = false; return; }
 
   /* ── Generar PDF ── */
