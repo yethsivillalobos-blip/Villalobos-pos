@@ -16,6 +16,9 @@
   .topbar{height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:100;flex-shrink:0}
   .topbar-brand{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.08em;display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text)}
   .topbar-actions{display:flex;align-items:center;gap:.75rem}
+  .rate-box{display:flex;align-items:center;gap:.4rem;background:var(--bg-card2);padding:.3rem .6rem;border-radius:8px;border:1px solid var(--border)}
+  .rate-box span{font-size:.75rem;color:var(--muted);font-weight:600}
+  .rate-box input{width:60px;background:transparent;border:none;color:var(--green);font-size:.875rem;font-weight:700;outline:none;font-family:'Space Grotesk',sans-serif}
   .btn-icon{background:var(--bg-card2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;font-size:1rem;text-decoration:none;font-family:'Inter',sans-serif}
   .btn-icon:hover{color:var(--text);border-color:var(--accent)}
   .pos-layout{display:flex;flex:1;height:calc(100vh - 56px);overflow:hidden}
@@ -36,8 +39,8 @@
   .product-card:hover{border-color:var(--accent);background:var(--bg-card2);transform:translateY(-1px)}
   .product-tag{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem}
   .product-name{font-size:.875rem;font-weight:600;margin-bottom:.3rem;line-height:1.3}
-  .product-price{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700}
-  .product-price-unit{font-size:.65rem;color:var(--muted)}
+  .product-price{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .product-price-usd{font-size:.8rem;color:var(--green);font-weight:600}
   .stock-badge{position:absolute;top:.6rem;right:.6rem;font-size:.62rem;padding:.15rem .45rem;border-radius:20px;background:rgba(62,207,142,.1);color:var(--green)}
   .stock-badge.low{background:rgba(255,209,102,.1);color:var(--yellow)}
   .stock-badge.out{background:rgba(255,107,107,.1);color:var(--red)}
@@ -63,17 +66,23 @@
   .cart-item:hover{background:rgba(255,255,255,.02)}
   .cart-item-info{flex:1;min-width:0}
   .cart-item-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cart-item-price{font-size:.72rem;color:var(--muted)}
+  .cart-item-price{font-size:.72rem;color:var(--muted);display:flex;gap:.5rem}
+  .cart-item-price-usd{color:var(--green)}
   .cart-item-controls{display:flex;align-items:center;gap:.3rem;flex-shrink:0;margin-top:.15rem}
   .qty-btn{width:22px;height:22px;border-radius:5px;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
   .qty-btn:hover{background:var(--border)}
   .qty-val{font-size:.8rem;font-weight:600;min-width:20px;text-align:center}
-  .cart-item-total{font-size:.8rem;font-weight:600;min-width:64px;text-align:right;flex-shrink:0;padding-top:.15rem}
+  .cart-item-total{display:flex;flex-direction:column;align-items:flex-end;min-width:64px;flex-shrink:0;padding-top:.15rem}
+  .cart-total-bs{font-size:.8rem;font-weight:600}
+  .cart-total-usd{font-size:.65rem;color:var(--green);font-weight:600}
   .remove-btn{color:var(--red);opacity:.5;cursor:pointer;font-size:.9rem;padding:.15rem;transition:.15s;background:none;border:none;margin-top:.1rem}
   .remove-btn:hover{opacity:1}
   .invoice-totals{padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--bg-card2);flex-shrink:0}
-  .total-row{display:flex;justify-content:space-between;font-size:.8rem;padding:.2rem 0}
-  .total-row.bold{font-weight:700;font-size:1rem;padding-top:.5rem;margin-top:.4rem}
+  .total-row{display:flex;justify-content:space-between;align-items:center;padding:.2rem 0}
+  .total-title{font-weight:700;font-size:1rem;color:var(--text)}
+  .total-amounts{text-align:right}
+  .total-amounts .bs{font-weight:700;font-size:1.1rem;font-family:'Space Grotesk',sans-serif}
+  .total-amounts .usd{font-size:.85rem;color:var(--green);font-weight:600;margin-top:.1rem}
   .payment-section{padding:.75rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
   .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
   .btn-generate{background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
@@ -108,7 +117,11 @@
 <header class="topbar">
   <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
   <div class="topbar-actions">
-    <span style="font-size:.75rem;color:var(--muted)" id="clock"></span>
+    <!-- NUEVA CAJA DE TASA DE CAMBIO -->
+    <div class="rate-box" title="Tasa de Cambio">
+      <span>Tasa:</span>
+      <input type="number" id="tasa-input" value="1.00" step="0.01" min="0.01" onchange="updateTasa()">
+    </div>
     <a href="index.html" class="btn-icon" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
     <button class="btn-icon" onclick="doLogout()" title="Cerrar Sesión"><i class="ti ti-logout"></i></button>
   </div>
@@ -157,9 +170,9 @@
           <select class="field-input" id="pay-method">
             <option value="EFECTIVO">Efectivo</option>
             <option value="TRANSFERENCIA">Transferencia</option>
-            <option value="PUNTO">Punto de Venta</option>
-            <option value="DIVISAS">Divisas</option>
-            <option value="MIXTO">Pago Mixto</option>
+            <option value="PAGO MOVIL">Pago Móvil</option>
+            <option value="DIVISAS">Divisas ($)</option>
+            <option value="ZELLE">Zelle</option>
           </select>
         </div>
       </div>
@@ -168,7 +181,13 @@
       <div class="cart-empty"><i class="ti ti-shopping-cart"></i><p>Selecciona productos del catálogo.</p></div>
     </div>
     <div class="invoice-totals">
-      <div class="total-row bold"><span>TOTAL RECIBIDO</span><span id="t-total">Bs. 0,00</span></div>
+      <div class="total-row">
+        <div class="total-title">TOTAL RECIBIDO</div>
+        <div class="total-amounts">
+          <div class="bs" id="t-total-bs">Bs. 0,00</div>
+          <div class="usd" id="t-total-usd">$ 0,00</div>
+        </div>
+      </div>
     </div>
     <div class="payment-section">
       <div class="action-row">
@@ -242,7 +261,14 @@ let invoiceCounter = 1;
 let editingId = null;
 let currentUserId = null;
 
+// Lógica de Tasa de Cambio
+let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
+
 const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtUSD = bs => {
+  const usd = bs / tasaDia;
+  return '$ ' + usd.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+};
 const isGravado = t => { const k=(t||'').toLowerCase(); return k==='gravado'||k.includes('16%'); };
 const formatDate = d => d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});
 
@@ -252,10 +278,17 @@ function showToast(msg, type='success') {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function updateTasa() {
+  const val = parseFloat(document.getElementById('tasa-input').value);
+  if (val > 0) {
+    tasaDia = val;
+    localStorage.setItem('vb_tasa', tasaDia);
+    filterProducts(); // Recarga los precios del catálogo visualmente
+    renderCart();     // Recarga los precios del carrito visualmente
+    showToast(`Tasa actualizada a Bs. ${val}`);
+  }
 }
-setInterval(updateClock, 1000); updateClock();
+
 document.getElementById('inv-date').textContent = formatDate(new Date());
 
 async function doLogout() {
@@ -267,6 +300,8 @@ async function init() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('login.html'); return; }
   currentUserId = session.user.id;
+
+  document.getElementById('tasa-input').value = tasaDia.toFixed(2);
 
   const { data: lastInv } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
   if (lastInv && lastInv.length > 0) {
@@ -308,7 +343,10 @@ function renderProducts(filter = '') {
         <span class="stock-badge ${sc}">${sl}</span>
         <div class="product-tag">${p.categoria||'General'} · ${p.codigo||''}</div>
         <div class="product-name">${p.nombre}</div>
-        <div class="product-price">${fmtBs(p.precio)}</div>
+        <div class="product-price">
+          <span>${fmtBs(p.precio)}</span>
+          <span class="product-price-usd">${fmtUSD(p.precio)}</span>
+        </div>
         <div style="display:flex;gap:.4rem;margin-top:.6rem">
           <button class="btn-sm secondary" style="font-size:.65rem;padding:.25rem .5rem;flex:1" onclick="event.stopPropagation();openModal(${p.id})"><i class="ti ti-edit"></i> Editar</button>
           <button class="btn-sm danger" style="font-size:.65rem;padding:.25rem .5rem" onclick="event.stopPropagation();deleteProduct(${p.id})"><i class="ti ti-trash"></i></button>
@@ -382,12 +420,12 @@ function addToCart(id) {
   const currentQty = ex ? ex.qty : 0;
 
   if (currentQty >= p.stock) {
-    showToast('Stock insuficiente. Solo quedan ' + p.stock + ' unidades disponibles.', 'error');
+    showToast('Stock insuficiente. Solo quedan ' + p.stock + ' unidades.', 'error');
     return;
   }
 
   if (p.stock - currentQty - 1 <= 2) {
-    showToast('Alerta de inventario: Quedan ' + (p.stock - currentQty - 1) + ' unidades de ' + p.nombre, 'error');
+    showToast('Alerta: Quedan ' + (p.stock - currentQty - 1) + ' unidades de ' + p.nombre, 'error');
   }
 
   if (ex) ex.qty++; else cart.push({ ...p, qty: 1 });
@@ -403,12 +441,12 @@ function changeQty(id, delta) {
   const newQty = item.qty + delta;
 
   if (newQty > p.stock) {
-    showToast('No puedes agregar más. Stock máximo alcanzado (' + p.stock + ').', 'error');
+    showToast('Stock máximo alcanzado (' + p.stock + ').', 'error');
     return;
   }
 
   if (p.stock - newQty <= 2 && delta > 0) {
-    showToast('Alerta de inventario: Quedan ' + (p.stock - newQty) + ' unidades de ' + p.nombre, 'error');
+    showToast('Alerta: Quedan ' + (p.stock - newQty) + ' unidades de ' + p.nombre, 'error');
   }
 
   item.qty = newQty;
@@ -431,14 +469,20 @@ function renderCart() {
       <div class="cart-item">
         <div class="cart-item-info">
           <div class="cart-item-name">${item.nombre}</div>
-          <div class="cart-item-price">${fmtBs(item.precio)} c/u</div>
+          <div class="cart-item-price">
+            <span>${fmtBs(item.precio)}</span>
+            <span class="cart-item-price-usd">(${fmtUSD(item.precio)})</span>
+          </div>
         </div>
         <div class="cart-item-controls">
           <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
           <span class="qty-val">${item.qty}</span>
           <button class="qty-btn" onclick="changeQty(${item.id},+1)">+</button>
         </div>
-        <div class="cart-item-total">${fmtBs(lt)}</div>
+        <div class="cart-item-total">
+          <span class="cart-total-bs">${fmtBs(lt)}</span>
+          <span class="cart-total-usd">${fmtUSD(lt)}</span>
+        </div>
         <button class="remove-btn" onclick="removeFromCart(${item.id})"><i class="ti ti-x"></i></button>
       </div>`;
   }).join('');
@@ -450,7 +494,9 @@ function renderCart() {
 
 function updateTotals(base, exempt) {
   const iva = base * IVA;
-  document.getElementById('t-total').textContent = fmtBs(base + exempt + iva);
+  const totalBs = base + exempt + iva;
+  document.getElementById('t-total-bs').textContent = fmtBs(totalBs);
+  document.getElementById('t-total-usd').textContent = fmtUSD(totalBs);
 }
 
 async function registrarPago() {
@@ -555,10 +601,12 @@ async function registrarPago() {
   Y += 6;
 
   const TW=85, TX=W-M-TW;
-  fr(TX,Y,TW,15,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,15,'S');
-  let TY=Y+9;
+  fr(TX,Y,TW,20,ABGD); doc.setDrawColor(...LGRAY); doc.setLineWidth(.3); doc.rect(TX,Y,TW,20,'S');
+  let TY=Y+8;
   sf('bold',12); sc(DARK); doc.text('TOTAL RECIBIDO:',TX+4,TY); doc.text(fmtBs(total),TX+TW-3,TY,{align:'right'});
-  Y += 21;
+  TY+=6;
+  sf('normal',9); sc(GRAY); doc.text(`Ref: ${fmtUSD(total)} (Tasa: Bs. ${tasaDia.toFixed(2)})`, TX+TW-3, TY, {align:'right'});
+  Y += 28;
 
   if(Y<220){
     ln(M,Y,W-M,Y); Y+=4; sf('normal',7); sc(GRAY);
