@@ -117,11 +117,11 @@
 <header class="topbar">
   <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
   <div class="topbar-actions">
-    <!-- NUEVA CAJA DE TASA DE CAMBIO -->
     <div class="rate-box" title="Tasa de Cambio">
       <span>Tasa:</span>
       <input type="number" id="tasa-input" value="1.00" step="0.01" min="0.01" onchange="updateTasa()">
     </div>
+    <a href="fiados.html" class="btn-icon" title="Cuentas por Cobrar"><i class="ti ti-notebook"></i></a>
     <a href="index.html" class="btn-icon" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
     <button class="btn-icon" onclick="doLogout()" title="Cerrar Sesión"><i class="ti ti-logout"></i></button>
   </div>
@@ -201,9 +201,17 @@
   </aside>
 </div>
 
+<!-- MODAL PRODUCTO ACTUALIZADO CON FOTO -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
   <div class="modal">
     <div class="modal-title"><i class="ti ti-package"></i> <span id="modal-title-text">Agregar Producto</span></div>
+    
+    <!-- NUEVO CAMPO DE IMAGEN -->
+    <div class="form-group">
+      <label class="form-label">Foto del Producto (Opcional)</label>
+      <input type="file" class="form-input" id="p-img" accept="image/*" style="padding: 0.5rem; background: var(--bg-card2);">
+    </div>
+
     <div class="form-group">
       <label class="form-label">Nombre del Producto *</label>
       <input type="text" class="form-input" id="p-name" placeholder="Ej: Chaqueta Deportiva">
@@ -228,14 +236,8 @@
         <input type="number" class="form-input" id="p-stock" placeholder="0" min="0">
       </div>
     </div>
-    <div class="form-row" style="display: none;">
-      <div class="form-group">
-        <input type="hidden" id="p-unit" value="UND">
-        <input type="hidden" id="p-tax" value="exento">
-      </div>
-    </div>
     <div class="modal-actions">
-      <button class="btn-modal-save" onclick="saveProduct()">Guardar Producto</button>
+      <button class="btn-modal-save" id="btn-save" onclick="saveProduct()">Guardar Producto</button>
       <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
     </div>
   </div>
@@ -262,7 +264,6 @@ let invoiceCounter = 1;
 let editingId = null;
 let currentUserId = null;
 
-// Lógica de Tasa de Cambio
 let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
 
 const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -284,8 +285,8 @@ function updateTasa() {
   if (val > 0) {
     tasaDia = val;
     localStorage.setItem('vb_tasa', tasaDia);
-    filterProducts(); // Recarga los precios del catálogo visualmente
-    renderCart();     // Recarga los precios del carrito visualmente
+    filterProducts(); 
+    renderCart();     
     showToast(`Tasa actualizada a Bs. ${val}`);
   }
 }
@@ -339,9 +340,14 @@ function renderProducts(filter = '') {
     const sc = p.stock === 0 ? 'out' : p.stock <= 2 ? 'low' : '';
     const sl = p.stock === 0 ? 'Agotado' : p.stock <= 2 ? `${p.stock} rest.` : `${p.stock} uds.`;
     const clickFn = p.stock === 0 ? `showToast('Producto agotado','error')` : `addToCart(${p.id})`;
+    
+    // Miniatura de la imagen
+    const thumb = p.imagen ? `<img src="${p.imagen}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:1rem;">` : '';
+
     return `
       <div class="product-card${p.stock===0?' out-of-stock':''}" onclick="${clickFn}" title="${p.nombre}" style="${p.stock===0?'opacity:.45;cursor:not-allowed':''}">
         <span class="stock-badge ${sc}">${sl}</span>
+        ${thumb}
         <div class="product-tag">${p.categoria||'General'} · ${p.codigo||''}</div>
         <div class="product-name">${p.nombre}</div>
         <div class="product-price">
@@ -359,6 +365,8 @@ function renderProducts(filter = '') {
 function openModal(id = null) {
   editingId = id;
   document.getElementById('modal-title-text').textContent = id ? 'Editar Producto' : 'Agregar Producto';
+  document.getElementById('p-img').value = ''; // Limpiar el input de la foto
+  
   if (id) {
     const p = products.find(x => x.id === id);
     document.getElementById('p-name').value  = p.nombre;
@@ -380,6 +388,28 @@ async function saveProduct() {
   const precio = parseFloat(document.getElementById('p-price').value);
   if (!nombre || isNaN(precio) || precio < 0) { showToast('Nombre y precio son obligatorios.','error'); return; }
 
+  const btnSave = document.getElementById('btn-save');
+  btnSave.textContent = 'Guardando...';
+  btnSave.disabled = true;
+
+  let imagenUrl = editingId ? products.find(x => x.id === editingId).imagen : null;
+  const imgFile = document.getElementById('p-img').files[0];
+
+  // Lógica para subir la foto a Supabase si seleccionaste una
+  if (imgFile) {
+    const ext = imgFile.name.split('.').pop();
+    const fileName = `${Date.now()}.${ext}`;
+    const { data: uploadData, error: uploadErr } = await sb.storage.from('catalogo').upload(fileName, imgFile);
+    
+    if (uploadErr) {
+      showToast('Error subiendo foto: ' + uploadErr.message, 'error');
+      btnSave.textContent = 'Guardar Producto';
+      btnSave.disabled = false;
+      return;
+    }
+    imagenUrl = sb.storage.from('catalogo').getPublicUrl(fileName).data.publicUrl;
+  }
+
   const payload = {
     nombre,
     categoria:   document.getElementById('p-cat').value.trim() || 'General',
@@ -389,6 +419,7 @@ async function saveProduct() {
     unidad:      'UND',
     tipo_fiscal: 'exento',
     activo:      true,
+    imagen:      imagenUrl,
     user_id:     currentUserId,
   };
 
@@ -398,6 +429,9 @@ async function saveProduct() {
   } else {
     ({ error } = await sb.from('productos').insert(payload));
   }
+
+  btnSave.textContent = 'Guardar Producto';
+  btnSave.disabled = false;
 
   if (error) { showToast('Error: ' + error.message, 'error'); return; }
   showToast(editingId ? 'Producto actualizado.' : 'Producto agregado.');
@@ -534,7 +568,6 @@ async function registrarPago() {
   });
   if (dbErr) { showToast('Error al guardar registro: ' + dbErr.message,'error'); btn.disabled = false; return; }
 
-  /* ── Si es FIADO, guardar la deuda en dólares ── */
   if (payMethod === 'FIADO') {
     const totalUsd = total / tasaDia;
     const { error: fiadoErr } = await sb.from('fiados').insert({
