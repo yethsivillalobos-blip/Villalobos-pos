@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VILLALOBOS — Cuaderno de Fiados</title>
+<link rel="manifest" href="./manifest.json" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg-main:#08090a;--bg-card:#111316;--bg-card2:#16191e;--border:#242830;--text:#f0f4f8;--muted:#8b95a3;--accent:#b8c0cc;--green:#3ecf8e;--red:#ff6b6b;--yellow:#ffd166}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+  
+  .topbar{height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:100;}
+  .topbar-brand{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.08em;display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text)}
+  .topbar-actions{display:flex;align-items:center;gap:.75rem}
+  
+  .rate-box{display:flex;align-items:center;gap:.4rem;background:var(--bg-card2);padding:.3rem .6rem;border-radius:8px;border:1px solid var(--border)}
+  .rate-box span{font-size:.75rem;color:var(--muted);font-weight:600}
+  .rate-box input{width:60px;background:transparent;border:none;color:var(--green);font-size:.875rem;font-weight:700;outline:none;font-family:'Space Grotesk',sans-serif}
+  
+  .btn-icon{background:var(--bg-card2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;text-decoration:none;}
+  .btn-icon:hover{color:var(--text);border-color:var(--accent)}
+
+  .container{padding:2rem 1.5rem;max-width:800px;margin:0 auto;width:100%;flex:1}
+  .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem}
+  
+  .fiados-list{display:grid;gap:1rem}
+  .fiado-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;gap:1rem;transition:.2s}
+  .fiado-card:hover{border-color:var(--accent)}
+  
+  .card-header{display:flex;justify-content:space-between;align-items:flex-start}
+  .client-name{font-weight:600;font-size:1rem;margin-bottom:.2rem}
+  .client-date{font-size:.75rem;color:var(--muted)}
+  .badge-pending{background:rgba(255,209,102,.1);color:var(--yellow);padding:.2rem .6rem;border-radius:20px;font-size:.65rem;text-transform:uppercase;font-weight:600;letter-spacing:.05em}
+  
+  .amounts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;background:var(--bg-card2);padding:1rem;border-radius:8px;border:1px solid var(--border)}
+  .amount-box{display:flex;flex-direction:column;gap:.2rem}
+  .amount-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .amount-val{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700}
+  .amount-val.red{color:var(--red)}
+  .amount-val.green{color:var(--green)}
+  
+  .btn-abonar{background:var(--text);color:var(--bg-main);border:none;padding:.75rem;border-radius:8px;font-weight:600;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;width:100%;font-family:'Inter',sans-serif}
+  .btn-abonar:hover{background:var(--accent)}
+
+  .empty-state{text-align:center;padding:4rem 1rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:1rem}
+  .empty-state i{font-size:3rem;opacity:.3}
+  
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px)}
+  .modal-overlay.open{opacity:1;pointer-events:all}
+  .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:400px;max-width:95vw;transform:translateY(20px);transition:.2s}
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;margin-bottom:.5rem}
+  
+  .form-group{margin-bottom:1.2rem}
+  .form-label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:.5rem}
+  .form-input{width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);padding:.75rem;border-radius:8px;font-size:1rem;outline:none;transition:.2s;font-family:'Space Grotesk',sans-serif;font-weight:700}
+  .form-input:focus{border-color:var(--accent)}
+  
+  .modal-actions{display:flex;gap:.75rem;margin-top:1.5rem}
+  .btn-modal-save{flex:1;background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;cursor:pointer}
+  .btn-modal-cancel{flex:1;background:var(--bg-card2);color:var(--muted);border:1px solid var(--border);padding:.7rem;border-radius:8px;font-weight:600;cursor:pointer}
+  
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.8rem;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(20px);opacity:0;transition:.3s;}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(62,207,142,.3);color:var(--green)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
+  <div class="topbar-actions">
+    <div class="rate-box" title="Tasa de Cambio">
+      <span>Tasa:</span>
+      <input type="number" id="tasa-input" step="0.01" min="0.01" onchange="updateTasa()">
+    </div>
+    <a href="app.html" class="btn-icon" title="Punto de Venta"><i class="ti ti-receipt"></i></a>
+    <a href="index.html" class="btn-icon" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
+  </div>
+</header>
+
+<main class="container">
+  <h1 class="page-title"><i class="ti ti-notebook"></i> Cuentas por Cobrar</h1>
+  
+  <div class="fiados-list" id="fiados-list">
+    <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Cargando registros...</p></div>
+  </div>
+</main>
+
+<!-- MODAL DE ABONO -->
+<div class="modal-overlay" id="modal-abono" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <h2 class="modal-title">Registrar Abono</h2>
+    <p id="abono-client" style="font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem"></p>
+    
+    <div class="form-group">
+      <label class="form-label">Monto a abonar (en Dólares $)</label>
+      <input type="number" class="form-input" id="monto-abono" placeholder="0.00" step="0.01" oninput="calcularEquivalente()">
+    </div>
+    
+    <div style="background:var(--bg-main);padding:1rem;border-radius:8px;border:1px dashed var(--border);margin-bottom:1.5rem">
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em">La clienta debe transferir:</div>
+      <div id="abono-bs" style="font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;color:var(--text)">Bs. 0,00</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-modal-save" onclick="guardarAbono()">Confirmar Pago</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
+document.getElementById('tasa-input').value = tasaDia.toFixed(2);
+
+let fiadosData = [];
+let currentFiadoId = null;
+let currentRestante = 0;
+
+const fmtUsd = n => '$ ' + parseFloat(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast success show';
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+function updateTasa() {
+  const val = parseFloat(document.getElementById('tasa-input').value);
+  if (val > 0) {
+    tasaDia = val;
+    localStorage.setItem('vb_tasa', tasaDia);
+    renderFiados(); 
+    showToast(`Tasa actualizada a Bs. ${val}`);
+  }
+}
+
+async function loadFiados() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('login.html'); return; }
+
+  const { data, error } = await sb.from('fiados')
+    .select('*')
+    .eq('estado', 'PENDIENTE')
+    .order('fecha_emision', { ascending: true });
+
+  if (error) { console.error(error); return; }
+  fiadosData = data || [];
+  renderFiados();
+}
+
+function renderFiados() {
+  const container = document.getElementById('fiados-list');
+  
+  if (fiadosData.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <i class="ti ti-mood-smile"></i>
+        <p>¡Todo limpio!<br>No hay cuentas pendientes por cobrar.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = fiadosData.map(f => {
+    // Calculamos cuánto sería el restante en Bolívares hoy
+    const restanteBs = f.restante_usd * tasaDia;
+    const formatBs = 'Bs. ' + restanteBs.toLocaleString('es-VE',{minimumFractionDigits:2});
+    
+    return `
+      <div class="fiado-card">
+        <div class="card-header">
+          <div>
+            <div class="client-name">${f.cliente_nombre}</div>
+            <div class="client-date">Emitido: ${f.fecha_emision}</div>
+          </div>
+          <span class="badge-pending">Pendiente</span>
+        </div>
+        
+        <div class="amounts-grid">
+          <div class="amount-box">
+            <span class="amount-label">Deuda Total</span>
+            <span class="amount-val">${fmtUsd(f.total_usd)}</span>
+          </div>
+          <div class="amount-box">
+            <span class="amount-label">Abonado</span>
+            <span class="amount-val green">${fmtUsd(f.abonado_usd)}</span>
+          </div>
+          <div class="amount-box">
+            <span class="amount-label">Restante</span>
+            <span class="amount-val red">${fmtUsd(f.restante_usd)}</span>
+          </div>
+        </div>
+        
+        <div style="font-size:0.75rem; color:var(--muted); text-align:right; margin-top:-0.5rem; margin-bottom: 0.5rem;">
+          Equivalente hoy: <strong style="color:var(--text)">${formatBs}</strong>
+        </div>
+
+        <button class="btn-abonar" onclick="abrirModal(${f.id}, '${f.cliente_nombre}', ${f.restante_usd})">
+          <i class="ti ti-cash"></i> Registrar Abono
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function abrirModal(id, nombre, restante) {
+  currentFiadoId = id;
+  currentRestante = restante;
+  document.getElementById('abono-client').textContent = `Clienta: ${nombre} — Resta: ${fmtUsd(restante)}`;
+  document.getElementById('monto-abono').value = '';
+  document.getElementById('abono-bs').textContent = 'Bs. 0,00';
+  document.getElementById('modal-abono').classList.add('open');
+  setTimeout(() => document.getElementById('monto-abono').focus(), 150);
+}
+
+function calcularEquivalente() {
+  const usd = parseFloat(document.getElementById('monto-abono').value) || 0;
+  const bs = usd * tasaDia;
+  document.getElementById('abono-bs').textContent = 'Bs. ' + bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function closeModal() {
+  document.getElementById('modal-abono').classList.remove('open');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-abono')) closeModal();
+}
+
+async function guardarAbono() {
+  const montoIngresado = parseFloat(document.getElementById('monto-abono').value);
+  
+  if (!montoIngresado || montoIngresado <= 0) return;
+  if (montoIngresado > currentRestante) {
+    alert('El abono no puede ser mayor a la deuda restante.');
+    return;
+  }
+
+  const fiado = fiadosData.find(f => f.id === currentFiadoId);
+  const nuevoAbonado = fiado.abonado_usd + montoIngresado;
+  const nuevoRestante = fiado.total_usd - nuevoAbonado;
+  const nuevoEstado = nuevoRestante <= 0.01 ? 'PAGADO' : 'PENDIENTE'; // 0.01 por margen de decimales
+
+  const { error } = await sb.from('fiados')
+    .update({ 
+      abonado_usd: nuevoAbonado, 
+      restante_usd: nuevoRestante, 
+      estado: nuevoEstado 
+    })
+    .eq('id', currentFiadoId);
+
+  if (error) {
+    alert('Error al guardar el abono.');
+    return;
+  }
+
+  showToast(nuevoEstado === 'PAGADO' ? '¡Deuda pagada por completo!' : 'Abono registrado con éxito.');
+  closeModal();
+  loadFiados(); // Recargar la lista desde la base de datos
+}
+
+loadFiados();
+</script>
+</body>
+</html>
