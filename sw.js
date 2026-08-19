@@ -1,4 +1,4 @@
-const CACHE_VILLALOBOS = 'villalobos-saas-v6';
+const CACHE_VILLALOBOS = 'villalobos-saas-v7';
 
 // Se incluyen todos los documentos HTML y librerías externas
 const recursosSaaS = [
