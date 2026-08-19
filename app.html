@@ -173,6 +173,7 @@
             <option value="PAGO MOVIL">Pago Móvil</option>
             <option value="DIVISAS">Divisas ($)</option>
             <option value="ZELLE">Zelle</option>
+            <option value="FIADO">FIADO (Crédito en $)</option>
           </select>
         </div>
       </div>
@@ -532,6 +533,25 @@ async function registrarPago() {
     fecha:          (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0],
   });
   if (dbErr) { showToast('Error al guardar registro: ' + dbErr.message,'error'); btn.disabled = false; return; }
+
+  /* ── Si es FIADO, guardar la deuda en dólares ── */
+  if (payMethod === 'FIADO') {
+    const totalUsd = total / tasaDia;
+    const { error: fiadoErr } = await sb.from('fiados').insert({
+      user_id:        currentUserId,
+      cliente_nombre: clientName,
+      cliente_rif:    clientRif,
+      fecha_emision:  (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().split('T')[0],
+      total_usd:      parseFloat(totalUsd.toFixed(2)),
+      abonado_usd:    0,
+      restante_usd:   parseFloat(totalUsd.toFixed(2)),
+      estado:         'PENDIENTE'
+    });
+    if (fiadoErr) {
+      showToast('Error al registrar el fiado.', 'error');
+      console.error(fiadoErr);
+    }
+  }
 
   for (const item of cart) {
     const p = products.find(x => x.id === item.id);
