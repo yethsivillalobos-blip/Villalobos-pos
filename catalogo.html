@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VILLALOBOS — Catálogo Oficial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
@@ -66,9 +67,21 @@
     flex-direction: column;
     transition: 0.2s ease;
   }
-  .product-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
+  .product-img {
+    width: 100%;
+    height: 200px;
+    background: var(--bg-main);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .tag {
     font-size: 0.65rem;
@@ -138,15 +151,16 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
   // Reemplaza con tu número de WhatsApp
-  const NUMERO_WHATSAPP = '584249130826';
+  const NUMERO_WHATSAPP = '584140000000';
 
   const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
 
   async function loadCatalog() {
     const grid = document.getElementById('catalog-grid');
     
+    // Seleccionamos también la imagen de la base de datos
     const { data, error } = await sb.from('productos')
-      .select('nombre, categoria, precio')
+      .select('nombre, categoria, precio, imagen')
       .eq('activo', true)
       .gt('stock', 0)
       .order('categoria')
@@ -165,9 +179,17 @@
     grid.innerHTML = data.map(p => {
       const mensaje = encodeURIComponent(`Hola, me interesa adquirir el producto: ${p.nombre} (${fmtBs(p.precio)}). ¿Aún tienen disponibilidad?`);
       const linkWa = `https://wa.me/${NUMERO_WHATSAPP}?text=${mensaje}`;
+      
+      // Si tiene foto la dibuja, si no, dibuja un icono minimalista
+      const imgHTML = p.imagen 
+        ? `<img src="${p.imagen}" alt="${p.nombre}">` 
+        : `<i class="ti ti-photo" style="font-size:3rem; color:var(--border)"></i>`;
 
       return `
         <div class="product-card">
+          <div class="product-img">
+            ${imgHTML}
+          </div>
           <div class="tag">${p.categoria || 'Ropa'}</div>
           <div class="name">${p.nombre}</div>
           <div class="price">${fmtBs(p.precio)}</div>
