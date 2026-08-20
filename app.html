@@ -243,11 +243,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// RADAR DE ERRORES: Atrapa fallos invisibles y los muestra en pantalla
+window.onerror = function(msg, url, lineNo, columnNo, error) {
+  alert("ERROR DETECTADO:\n" + msg + "\nLínea: " + lineNo);
+  return false;
+};
+window.addEventListener('unhandledrejection', function(event) {
+  alert("ERROR DE RED/SUPABASE:\n" + (event.reason ? event.reason.message : event.reason));
+});
+
 const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const EMPRESA = { nombre: 'VILLALOBOS, C.A.', direccion: 'Tu Tienda Online - Envíos Nacionales', telefono: '+58 424-9130826', email: 'yethsivillalobos@gmail.com};
+const EMPRESA = { nombre: 'VILLALOBOS, C.A.', direccion: 'Tu Tienda Online - Envíos Nacionales', telefono: '+58 414-0000000', email: 'ventas@villalobos.com' };
 const IVA = 0.16;
 let products = [], cart = [], invoiceCounter = 1, editingId = null, currentUserId = null;
 let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
@@ -272,21 +281,35 @@ function updateTasa() {
 async function doLogout() { await sb.auth.signOut(); window.location.replace('login.html'); }
 
 async function init() {
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session) { window.location.replace('login.html'); return; }
-  currentUserId = session.user.id;
-  document.getElementById('tasa-input').value = tasaDia.toFixed(2);
-  const { data: lastInv } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
-  if (lastInv && lastInv.length > 0) invoiceCounter = parseInt(lastInv[0].nro_factura) + 1;
-  document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
-  await loadProducts();
+  try {
+    const { data:{ session }, error: sessionError } = await sb.auth.getSession();
+    if (sessionError) throw new Error("Error de sesión: " + sessionError.message);
+    if (!session) { window.location.replace('login.html'); return; }
+    
+    currentUserId = session.user.id;
+    document.getElementById('tasa-input').value = tasaDia.toFixed(2);
+    
+    const { data: lastInv, error: invError } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
+    if (invError) throw new Error("Error al buscar última factura: " + invError.message);
+    
+    if (lastInv && lastInv.length > 0) invoiceCounter = parseInt(lastInv[0].nro_factura) + 1;
+    document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
+    
+    await loadProducts();
+  } catch (err) {
+    alert("FALLO EN INICIO: " + err.message);
+  }
 }
 
 async function loadProducts() {
-  const { data, error } = await sb.from('productos').select('*').eq('activo', true).order('nombre');
-  if (error) { showToast('Error carga: ' + error.message, 'error'); return; }
-  products = data || [];
-  renderProducts();
+  try {
+    const { data, error } = await sb.from('productos').select('*').eq('activo', true).order('nombre');
+    if (error) throw new Error("Error al cargar productos: " + error.message);
+    products = data || [];
+    renderProducts();
+  } catch (err) {
+    alert("FALLO EN CARGA DE PRODUCTOS: " + err.message);
+  }
 }
 
 function renderProducts(filter = '') {
@@ -313,16 +336,48 @@ async function saveProduct() {
   let imagenUrl = editingId ? products.find(x => x.id === editingId).imagen : null;
   
   if (imgFile) {
-    const { data: uploadData } = await sb.storage.from('catalogo').upload(`${Date.now()}.${imgFile.name.split('.').pop()}`, imgFile);
+    const { data: uploadData, error: uploadErr } = await sb.storage.from('catalogo').upload(`${Date.now()}.${imgFile.name.split('.').pop()}`, imgFile);
+    if (uploadErr) { alert("Error subiendo imagen: " + uploadErr.message); return; }
     imagenUrl = sb.storage.from('catalogo').getPublicUrl(uploadData.path).data.publicUrl;
   }
 
   const payload = { nombre, precio, categoria: document.getElementById('p-cat').value, codigo: document.getElementById('p-code').value, stock: parseInt(document.getElementById('p-stock').value), imagen: imagenUrl, activo: true, user_id: currentUserId };
-  if (editingId) await sb.from('productos').update(payload).eq('id', editingId);
-  else await sb.from('productos').insert(payload);
+  
+  let error;
+  if (editingId) {
+    const res = await sb.from('productos').update(payload).eq('id', editingId);
+    error = res.error;
+  } else {
+    const res = await sb.from('productos').insert(payload);
+    error = res.error;
+  }
+  
+  if (error) { alert("Error al guardar: " + error.message); return; }
   
   closeModal(); await loadProducts(); showToast('Producto guardado.');
 }
+
+function openModal(id = null) {
+  editingId = id;
+  document.getElementById('modal-title-text').textContent = id ? 'Editar Producto' : 'Agregar Producto';
+  const imgInput = document.getElementById('p-img');
+  if(imgInput) imgInput.value = ''; 
+  
+  if (id) {
+    const p = products.find(x => x.id === id);
+    document.getElementById('p-name').value  = p.nombre;
+    document.getElementById('p-cat').value   = p.categoria || '';
+    document.getElementById('p-code').value  = p.codigo || '';
+    document.getElementById('p-price').value = p.precio;
+    document.getElementById('p-stock').value = p.stock;
+  } else {
+    ['p-name','p-cat','p-code','p-price','p-stock'].forEach(i => document.getElementById(i).value = '');
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId = null; }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
 
 function addToCart(id) {
   const p = products.find(x => x.id === id);
@@ -356,7 +411,6 @@ async function registrarPago() {
   const total = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
   const payMethod = document.getElementById('pay-method').value;
   
-  // Guardar venta...
   await sb.from('facturas').insert({ user_id: currentUserId, nro_factura: invoiceCounter, total: total, fecha: new Date().toISOString().split('T')[0] });
   if (payMethod === 'FIADO') {
     await sb.from('fiados').insert({ user_id: currentUserId, cliente_nombre: document.getElementById('client-name').value, total_usd: total/tasaDia, restante_usd: total/tasaDia });
@@ -372,29 +426,6 @@ async function registrarPago() {
 }
 
 init();
-  async function loadProducts() {
-  const grid = document.getElementById('products-grid');
-  
-  // Pruebo la conexión primero
-  try {
-    const { data, error } = await sb.from('productos')
-      .select('*')
-      .eq('activo', true)
-      .order('nombre');
-
-    if (error) {
-      alert("ERROR DE SUPABASE: " + error.message);
-      grid.innerHTML = '<div class="empty-state"><p>Error al conectar. Revisa la consola.</p></div>';
-      return;
-    }
-
-    products = data || [];
-    renderProducts();
-    
-  } catch (err) {
-    alert("FALLO TOTAL: " + err.message);
-  }
-}
 </script>
 </body>
 </html>
