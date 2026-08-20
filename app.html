@@ -372,6 +372,29 @@ async function registrarPago() {
 }
 
 init();
+  async function loadProducts() {
+  const grid = document.getElementById('products-grid');
+  
+  // Pruebo la conexión primero
+  try {
+    const { data, error } = await sb.from('productos')
+      .select('*')
+      .eq('activo', true)
+      .order('nombre');
+
+    if (error) {
+      alert("ERROR DE SUPABASE: " + error.message);
+      grid.innerHTML = '<div class="empty-state"><p>Error al conectar. Revisa la consola.</p></div>';
+      return;
+    }
+
+    products = data || [];
+    renderProducts();
+    
+  } catch (err) {
+    alert("FALLO TOTAL: " + err.message);
+  }
+}
 </script>
 </body>
 </html>
