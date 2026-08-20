@@ -153,7 +153,6 @@ async function doLogout() {
 }
 
 async function loadDashboard() {
-  // Verificar sesión
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('login.html'); return; }
 
@@ -161,15 +160,14 @@ async function loadDashboard() {
   document.getElementById('user-email').textContent = email.length > 22 ? email.substring(0,20)+'…' : email;
 
   const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-const today = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+  const today = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
 
-  // Cargar en paralelo
+  // Le cambié el "select" a un asterisco (*) para asegurarme de que traiga TODO sin importar el nombre exacto de la columna
   const [resFacturas, resProductos] = await Promise.all([
-    sb.from('facturas').select('nro_factura,cliente_nombre,total,iva,created_at').eq('fecha', today).order('created_at',{ascending:false}),
+    sb.from('facturas').select('*').eq('fecha', today).order('created_at',{ascending:false}),
     sb.from('productos').select('id',{count:'exact'}).eq('activo', true)
   ]);
 
-  // ── Stats ──
   const facturas = resFacturas.data || [];
   const totalVentas = facturas.reduce((s,f) => s + parseFloat(f.total||0), 0);
   const totalIva    = facturas.reduce((s,f) => s + parseFloat(f.iva||0),   0);
@@ -181,27 +179,30 @@ const today = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
 
   document.getElementById('stat-facturas').textContent    = facturas.length;
   document.getElementById('stat-facturas-sub').textContent = '— Hoy';
-
   document.getElementById('stat-iva').textContent = fmtBs(totalIva);
-
   document.getElementById('stat-productos').textContent    = numProductos;
   document.getElementById('stat-productos-sub').textContent = numProductos ? numProductos+' producto'+(numProductos>1?'s':'')+' activo'+(numProductos>1?'s':'') : '— Agrega en POS';
 
-  // ── Tabla últimas facturas ──
   const tbody = document.getElementById('tbody-facturas');
   if (facturas.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin facturas emitidas hoy</td></tr>';
   } else {
-    tbody.innerHTML = facturas.slice(0,8).map(f => `
+    tbody.innerHTML = facturas.slice(0,8).map(f => {
+      
+      // Filtro de seguridad: Busca en cualquier columna que pueda contener el nombre, y evita los errores
+      let nombreFormateado = f.cliente_nombre || f.cliente || f.nombre_cliente || 'Cliente de Contado';
+      if (nombreFormateado === 'null' || nombreFormateado === 'undefined') nombreFormateado = 'Cliente de Contado';
+
+      return `
       <tr>
         <td style="font-family:'Space Grotesk',sans-serif;font-weight:600">${f.nro_factura}</td>
-        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.cliente_nombre}">${f.cliente_nombre}</td>
+        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${nombreFormateado}">${nombreFormateado}</td>
         <td>${fmtBs(f.total)}</td>
         <td><span class="status-badge paid"><i class="ti ti-circle-check" style="font-size:.75rem"></i> Emitida</span></td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
-  // Actualizar badge con conteo
   document.getElementById('badge-hoy').textContent = facturas.length ? facturas.length+' hoy' : 'Hoy';
 }
 
