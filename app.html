@@ -408,23 +408,69 @@ function changeQty(id, delta) {
 }
 
 async function registrarPago() {
+  if (cart.length === 0) { 
+    showToast('El carrito está vacío', 'error'); 
+    return; 
+  }
+
+  // Desactivar el botón para no cobrar dos veces por accidente
+  const btn = document.getElementById('btn-factura');
+  if (btn) btn.disabled = true;
+
   const total = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
   const payMethod = document.getElementById('pay-method').value;
-  
-  await sb.from('facturas').insert({ user_id: currentUserId, nro_factura: invoiceCounter, total: total, fecha: new Date().toISOString().split('T')[0] });
-  if (payMethod === 'FIADO') {
-    await sb.from('fiados').insert({ user_id: currentUserId, cliente_nombre: document.getElementById('client-name').value, total_usd: total/tasaDia, restante_usd: total/tasaDia });
+  const clientName = document.getElementById('client-name').value.trim() || 'Cliente de Contado';
+  const fechaHoy = new Date().toISOString().split('T')[0];
+
+  // 1. Guardar la Venta en facturas
+  const { error: invErr } = await sb.from('facturas').insert({
+    user_id: currentUserId,
+    nro_factura: invoiceCounter,
+    cliente_nombre: clientName,
+    total: total,
+    fecha: fechaHoy
+  });
+
+  if (invErr) { 
+    alert("Error al registrar factura: " + invErr.message); 
+    if (btn) btn.disabled = false;
+    return; 
   }
-  
+
+  // 2. Guardar el Fiado (El agente problemático, ahora blindado)
+  if (payMethod === 'FIADO') {
+    const totalUsd = total / tasaDia;
+    
+    const { error: fiadoErr } = await sb.from('fiados').insert({
+      user_id: currentUserId,
+      cliente_nombre: clientName,
+      total_usd: parseFloat(totalUsd.toFixed(2)),
+      abonado_usd: 0,
+      restante_usd: parseFloat(totalUsd.toFixed(2)),
+      estado: 'PENDIENTE',
+      fecha_emision: fechaHoy
+    });
+
+    if (fiadoErr) {
+      alert("ATENCIÓN - Error guardando fiado: " + fiadoErr.message);
+    }
+  }
+
+  // 3. Descontar el inventario
   for (const item of cart) {
     const p = products.find(x => x.id === item.id);
-    await sb.from('productos').update({ stock: p.stock - item.qty }).eq('id', item.id);
+    if (p) {
+      await sb.from('productos').update({ stock: p.stock - item.qty }).eq('id', item.id);
+    }
   }
-  
-  showToast('Venta registrada.');
-  cart = []; renderCart(); await loadProducts();
-}
 
+  showToast('Pago procesado correctamente.');
+  cart = []; 
+  renderCart(); 
+  await loadProducts();
+  
+  if (btn) btn.disabled = false;
+}
 init();
 </script>
 </body>
