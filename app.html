@@ -115,9 +115,9 @@
 <header class="topbar">
   <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
   <div class="topbar-actions">
-    <div class="rate-box" title="Tasa de Cambio">
-      <span>Tasa:</span>
-      <input type="number" id="tasa-input" value="1.00" step="0.01" min="0.01" onchange="updateTasa()">
+    <div class="rate-box" title="Tasa de Cambio BCV">
+      <span>Tasa BCV:</span>
+      <input type="number" id="tasa-input" value="1.00" step="0.01" min="0.01" onchange="updateTasaManual()">
     </div>
     <a href="catalogo.html" class="btn-icon" title="Ver Catálogo Público" target="_blank"><i class="ti ti-eye"></i></a>
     <a href="fiados.html" class="btn-icon" title="Cuentas por Cobrar"><i class="ti ti-notebook"></i></a>
@@ -265,10 +265,31 @@ function showToast(msg, type='success') {
   setTimeout(() => t.classList.remove('show'), 3200);
 }
 
-function updateTasa() {
+// NUEVA FUNCIÓN: Obtener tasa BCV automáticamente
+async function fetchTasaBCV() {
+  try {
+    const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+    const data = await res.json();
+    if (data && data.promedio) {
+      tasaDia = data.promedio;
+      localStorage.setItem('vb_tasa', tasaDia);
+      document.getElementById('tasa-input').value = tasaDia.toFixed(2);
+      showToast(`Tasa BCV actualizada: Bs. ${tasaDia.toFixed(2)}`);
+      renderProducts(); 
+      renderCart();
+    }
+  } catch (err) {
+    console.log("No se pudo conectar a la API del BCV, usando la tasa guardada localmente.");
+    document.getElementById('tasa-input').value = tasaDia.toFixed(2);
+  }
+}
+
+// Función si decides cambiarla manualmente en la cajita
+function updateTasaManual() {
   tasaDia = parseFloat(document.getElementById('tasa-input').value) || 40.00;
   localStorage.setItem('vb_tasa', tasaDia);
-  renderProducts(); renderCart(); showToast(`Tasa: Bs. ${tasaDia.toFixed(2)}`);
+  renderProducts(); renderCart(); 
+  showToast(`Tasa manual: Bs. ${tasaDia.toFixed(2)}`);
 }
 
 async function doLogout() { await sb.auth.signOut(); window.location.replace('login.html'); }
@@ -280,7 +301,9 @@ async function init() {
     if (!session) { window.location.replace('login.html'); return; }
     
     currentUserId = session.user.id;
-    document.getElementById('tasa-input').value = tasaDia.toFixed(2);
+    
+    // Llamamos a la automatización de la tasa al iniciar
+    await fetchTasaBCV();
     
     const { data: lastInv, error: invError } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
     if (invError) throw new Error("Error al buscar última factura: " + invError.message);
