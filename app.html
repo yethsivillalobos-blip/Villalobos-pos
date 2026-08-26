@@ -3,475 +3,365 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Punto de Venta</title>
+<title>VILLALOBOS — Dashboard</title>
 <link rel="manifest" href="./manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Librería para generar los PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{--bg-main:#08090a;--bg-card:#111316;--bg-card2:#16191e;--border:#242830;--text:#f0f4f8;--muted:#8b95a3;--accent:#b8c0cc;--green:#3ecf8e;--red:#ff6b6b;--yellow:#ffd166}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
-  .topbar{height:56px;background:var(--bg-card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:100;flex-shrink:0}
-  .topbar-brand{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.08em;display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--text)}
-  .topbar-actions{display:flex;align-items:center;gap:.75rem}
-  .rate-box{display:flex;align-items:center;gap:.4rem;background:var(--bg-card2);padding:.3rem .6rem;border-radius:8px;border:1px solid var(--border)}
-  .rate-box span{font-size:.75rem;color:var(--muted);font-weight:600}
-  .rate-box input{width:60px;background:transparent;border:none;color:var(--green);font-size:.875rem;font-weight:700;outline:none;font-family:'Space Grotesk',sans-serif}
-  .btn-icon{background:var(--bg-card2);border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.2s;font-size:1rem;text-decoration:none;font-family:'Inter',sans-serif}
-  .btn-icon:hover{color:var(--text);border-color:var(--accent)}
-  .pos-layout{display:flex;flex:1;height:calc(100vh - 56px);overflow:hidden}
-  .products-panel{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden}
-  .panel-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;flex-shrink:0}
-  .search-box{flex:1;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);padding:.55rem 1rem;border-radius:8px;font-size:.875rem;outline:none;transition:.2s;font-family:'Inter',sans-serif}
-  .search-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,.08)}
-  .btn-sm{background:var(--text);color:var(--bg-main);border:none;padding:.55rem 1rem;border-radius:8px;font-weight:600;font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.35rem;transition:.2s;font-family:'Inter',sans-serif;white-space:nowrap}
-  .btn-sm:hover{background:var(--accent)}
-  .btn-sm.secondary{background:var(--bg-card2);color:var(--text);border:1px solid var(--border)}
-  .btn-sm.secondary:hover{border-color:var(--accent)}
-  .btn-sm.danger{background:rgba(255,107,107,.12);color:var(--red);border:1px solid rgba(255,107,107,.2)}
-  .btn-sm.danger:hover{background:rgba(255,107,107,.2)}
-  .products-grid{flex:1;overflow-y:auto;padding:1rem 1.25rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;align-content:start}
-  .products-grid::-webkit-scrollbar{width:4px}
-  .products-grid::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-  .product-card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1rem;cursor:pointer;transition:.2s;position:relative}
-  .product-card:hover{border-color:var(--accent);background:var(--bg-card2);transform:translateY(-1px)}
-  .product-tag{font-size:.62rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem}
-  .product-name{font-size:.875rem;font-weight:600;margin-bottom:.3rem;line-height:1.3}
-  .product-price{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
-  .product-price-usd{font-size:.8rem;color:var(--green);font-weight:600}
-  .stock-badge{position:absolute;top:.6rem;right:.6rem;font-size:.62rem;padding:.15rem .45rem;border-radius:20px;background:rgba(62,207,142,.1);color:var(--green)}
-  .stock-badge.low{background:rgba(255,209,102,.1);color:var(--yellow)}
-  .stock-badge.out{background:rgba(255,107,107,.1);color:var(--red)}
-  .empty-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;color:var(--muted);text-align:center;gap:1rem}
-  .empty-state i{font-size:3rem;opacity:.3}
-  .empty-state p{font-size:.875rem}
-  .invoice-panel{width:380px;min-width:340px;display:flex;flex-direction:column;background:var(--bg-card);overflow:hidden;flex-shrink:0}
-  .invoice-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
-  .invoice-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.1rem}
-  .invoice-num{font-size:.72rem;color:var(--muted)}
-  .client-section{padding:.75rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
-  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem}
-  .field-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
-  .field-input{width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);padding:.5rem .65rem;border-radius:6px;font-size:.8rem;outline:none;transition:.2s;font-family:'Inter',sans-serif}
-  .field-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(184,192,204,.08)}
-  .cart-items{flex:1;overflow-y:auto;padding:.5rem 0}
-  .cart-items::-webkit-scrollbar{width:3px}
-  .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-  .cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);gap:.75rem;padding:2rem;text-align:center}
-  .cart-empty i{font-size:2.5rem;opacity:.25}
-  .cart-empty p{font-size:.8rem}
-  .cart-item{display:flex;align-items:flex-start;gap:.5rem;padding:.6rem 1.25rem;border-bottom:1px solid var(--border);transition:.15s}
-  .cart-item:hover{background:rgba(255,255,255,.02)}
-  .cart-item-info{flex:1;min-width:0}
-  .cart-item-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .cart-item-price{font-size:.72rem;color:var(--muted);display:flex;gap:.5rem}
-  .cart-item-price-usd{color:var(--green)}
-  .cart-item-controls{display:flex;align-items:center;gap:.3rem;flex-shrink:0;margin-top:.15rem}
-  .qty-btn{width:22px;height:22px;border-radius:5px;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-  .qty-btn:hover{background:var(--border)}
-  .qty-val{font-size:.8rem;font-weight:600;min-width:20px;text-align:center}
-  .cart-item-total{display:flex;flex-direction:column;align-items:flex-end;min-width:64px;flex-shrink:0;padding-top:.15rem}
-  .cart-total-bs{font-size:.8rem;font-weight:600}
-  .cart-total-usd{font-size:.65rem;color:var(--green);font-weight:600}
-  .remove-btn{color:var(--red);opacity:.5;cursor:pointer;font-size:.9rem;padding:.15rem;transition:.15s;background:none;border:none;margin-top:.1rem}
-  .remove-btn:hover{opacity:1}
-  .invoice-totals{padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--bg-card2);flex-shrink:0}
-  .total-row{display:flex;justify-content:space-between;align-items:center;padding:.2rem 0}
-  .total-title{font-weight:700;font-size:1rem;color:var(--text)}
-  .total-amounts{text-align:right}
-  .total-amounts .bs{font-weight:700;font-size:1.1rem;font-family:'Space Grotesk',sans-serif}
-  .total-amounts .usd{font-size:.85rem;color:var(--green);font-weight:600;margin-top:.1rem}
-  .payment-section{padding:.75rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
-  .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
-  .btn-generate{background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-generate:hover{background:var(--accent);transform:translateY(-1px)}
-  .btn-generate:disabled{opacity:.4;cursor:not-allowed;transform:none}
-  .btn-clear{background:rgba(255,107,107,.08);color:var(--red);border:1px solid rgba(255,107,107,.2);padding:.7rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-clear:hover{background:rgba(255,107,107,.15)}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px)}
+  body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text);min-height:100vh;display:flex}
+  .sidebar{width:240px;min-height:100vh;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:1.5rem 1rem;position:fixed;top:0;left:0;bottom:0;z-index:50}
+  .sidebar-brand{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.08em;display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem 1.5rem;color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+  .nav-section{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:0 .75rem;margin-bottom:.5rem}
+  .nav-item{display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-radius:8px;color:var(--muted);text-decoration:none;font-size:.875rem;transition:.2s;margin-bottom:.1rem;cursor:pointer;background:none;border:none;width:100%;text-align:left;font-family:'Inter',sans-serif}
+  .nav-item:hover{background:var(--bg-card2);color:var(--text)}
+  .nav-item.active{background:var(--bg-card2);color:var(--text)}
+  .nav-item i{font-size:1.1rem}
+  .sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:1rem}
+  .user-info{display:flex;align-items:center;gap:.65rem;padding:.5rem .75rem;margin-bottom:.25rem}
+  .avatar{width:32px;height:32px;border-radius:50%;background:var(--bg-card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--accent);flex-shrink:0}
+  .user-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .user-role{font-size:.7rem;color:var(--muted)}
+  .main{margin-left:240px;flex:1;padding:2rem;min-height:100vh}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem; flex-wrap:wrap; gap:1rem;}
+  .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700}
+  .page-subtitle{font-size:.8rem;color:var(--muted);margin-top:.2rem}
+  .btn-primary{background:var(--text);color:var(--bg-main);border:none;padding:.65rem 1.25rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif;text-decoration:none}
+  .btn-primary:hover{background:var(--accent)}
+  .btn-wolf{background:linear-gradient(135deg, #2a2d35 0%, #111316 100%); color:var(--text); border:1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.5);}
+  .btn-wolf:hover{border-color:var(--accent); color:#fff;}
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem}
+  .stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
+  .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.75rem;font-weight:700}
+  .stat-change{font-size:.75rem;color:var(--muted);margin-top:.3rem}
+  .stat-change.up{color:var(--green)}
+  .section-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
+  .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+  .card-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .card-title{font-size:.875rem;font-weight:600}
+  .badge{font-size:.7rem;padding:.2rem .6rem;border-radius:20px;background:var(--bg-card2);color:var(--muted)}
+  .badge.live{background:rgba(62,207,142,.1);color:var(--green)}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:.75rem 1.25rem;text-align:left;border-bottom:1px solid var(--border)}
+  td{font-size:.8rem;padding:.75rem 1.25rem;border-bottom:1px solid var(--border)}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .status-badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;padding:.2rem .6rem;border-radius:20px}
+  .status-badge.paid{background:rgba(62,207,142,.1);color:var(--green)}
+  .skeleton{background:linear-gradient(90deg,var(--bg-card2) 25%,var(--border) 50%,var(--bg-card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;height:1.75rem;width:80%}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .acceso-item{display:flex;align-items:center;gap:.5rem;color:var(--text);text-decoration:none;transition:.15s; cursor:pointer;}
+  .acceso-item:hover{color:var(--accent)}
+
+  /* Modal de la Nota Manual */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px)}
   .modal-overlay.open{opacity:1;pointer-events:all}
   .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:.2s}
   .modal-overlay.open .modal{transform:translateY(0)}
-  .modal-title{font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:.5rem}
   .form-group{margin-bottom:1rem}
   .form-label{display:block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
   .form-input{width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);padding:.65rem .85rem;border-radius:8px;font-size:.875rem;outline:none;transition:.2s;font-family:'Inter',sans-serif}
   .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,.08)}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-  .modal-actions{display:flex;gap:.75rem;margin-top:1.5rem}
-  .btn-modal-save{flex:1;background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-modal-save:hover{background:var(--accent)}
-  .btn-modal-cancel{flex:1;background:var(--bg-card2);color:var(--muted);border:1px solid var(--border);padding:.7rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-modal-cancel:hover{color:var(--text)}
-  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.8rem;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(20px);opacity:0;transition:.3s;display:flex;align-items:center;gap:.5rem;max-width:300px}
-  .toast.show{transform:translateY(0);opacity:1}
-  .toast.success{border-color:rgba(62,207,142,.3);color:var(--green)}
-  .toast.error{border-color:rgba(255,107,107,.3);color:var(--red)}
-  @media(max-width:900px){.pos-layout{flex-direction:column}.invoice-panel{width:100%;min-width:unset;max-height:55vh}.products-panel{height:45vh}}
+
+  @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr)}.section-grid{grid-template-columns:1fr}}
+  @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}}
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <a href="index.html" class="topbar-brand"><i class="ti ti-shield-lock"></i> VILLALOBOS</a>
-  <div class="topbar-actions">
-    <div class="rate-box" title="Tasa de Cambio">
-      <span>Tasa:</span>
-      <input type="number" id="tasa-input" value="1.00" step="0.01" min="0.01" onchange="updateTasa()">
+<nav class="sidebar">
+  <a href="index.html" class="sidebar-brand"><i class="ti ti-shield-lock" style="font-size:1.4rem"></i> VILLALOBOS</a>
+  <div class="nav-section">Principal</div>
+  <a class="nav-item active" href="index.html"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+  <a class="nav-item" href="app.html"><i class="ti ti-receipt"></i> Punto de Venta</a>
+  <div class="nav-section" style="margin-top:1rem">Herramientas</div>
+  <a class="nav-item" onclick="abrirModalNota()"><i class="ti ti-file-certificate"></i> Nota Manual</a>
+  <a class="nav-item" href="catalogo.html" target="_blank"><i class="ti ti-shopping-cart"></i> Ver Catálogo</a>
+  <div class="nav-section" style="margin-top:1rem">Gestión</div>
+  <a class="nav-item" href="fiados.html"><i class="ti ti-notebook"></i> Cuentas por Cobrar</a>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="avatar"><i class="ti ti-user" style="font-size:.9rem"></i></div>
+      <div><div class="user-name" id="user-email">Cargando...</div><div class="user-role">Villalobos C.A.</div></div>
     </div>
-    <a href="catalogo.html" class="btn-icon" title="Ver Catálogo Público" target="_blank"><i class="ti ti-eye"></i></a>
-    <a href="fiados.html" class="btn-icon" title="Cuentas por Cobrar"><i class="ti ti-notebook"></i></a>
-    <a href="index.html" class="btn-icon" title="Dashboard"><i class="ti ti-layout-dashboard"></i></a>
-    <button class="btn-icon" onclick="doLogout()" title="Cerrar Sesión"><i class="ti ti-logout"></i></button>
+    <button class="nav-item" onclick="doLogout()"><i class="ti ti-logout"></i> Cerrar Sesión</button>
   </div>
-</header>
+</nav>
 
-<div class="pos-layout">
-  <section class="products-panel">
-    <div class="panel-header">
-      <input type="text" class="search-box" id="search-input" placeholder="Buscar producto..." oninput="filterProducts()">
-      <button class="btn-sm" onclick="openModal()"><i class="ti ti-plus"></i> Producto</button>
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Resumen de operaciones — <span id="today-date"></span></p>
     </div>
-    <div class="products-grid" id="products-grid">
-      <div class="empty-state"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><p>Cargando productos...</p></div>
+    <div style="display:flex; gap:0.5rem;">
+      <button class="btn-primary btn-wolf" onclick="abrirModalNota()"><i class="ti ti-file-certificate"></i> Crear Nota</button>
+      <a href="app.html" class="btn-primary"><i class="ti ti-plus"></i> POS</a>
     </div>
-  </section>
+  </div>
 
-  <aside class="invoice-panel">
-    <div class="invoice-header">
-      <div class="invoice-title">Registro <span id="inv-type-label">Nota de Entrega</span></div>
-      <div class="invoice-num" id="inv-num-label">Nro. 00000001 · <span id="inv-date"></span></div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Ventas Hoy</div>
+      <div class="stat-value" id="stat-ventas"><div class="skeleton"></div></div>
+      <div class="stat-change" id="stat-ventas-sub">Cargando...</div>
     </div>
-    <div class="client-section">
-      <div class="field-row">
-        <div>
-          <div class="field-label">Tipo ID</div>
-          <select class="field-input" id="client-type">
-            <option value="V">V – Natural</option>
-            <option value="J">J – Jurídico</option>
-            <option value="E">E – Extranjero</option>
-            <option value="P">P – Pasaporte</option>
-          </select>
-        </div>
-        <div>
-          <div class="field-label">Cédula / RIF</div>
-          <input type="text" class="field-input" id="client-rif" placeholder="12345678">
-        </div>
-      </div>
-      <div style="margin-bottom:.5rem">
-        <div class="field-label">Nombre del Cliente</div>
-        <input type="text" class="field-input" id="client-name" placeholder="Cliente de Contado">
-      </div>
-      <div class="field-row">
-        <input type="hidden" id="invoice-type" value="NOTA_ENTREGA">
-        <div>
-          <div class="field-label">Forma de Pago</div>
-          <select class="field-input" id="pay-method">
-            <option value="EFECTIVO">Efectivo</option>
-            <option value="TRANSFERENCIA">Transferencia</option>
-            <option value="PAGO MOVIL">Pago Móvil</option>
-            <option value="DIVISAS">Divisas ($)</option>
-            <option value="ZELLE">Zelle</option>
-            <option value="FIADO">FIADO (Crédito en $)</option>
-          </select>
-        </div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-label">Facturas Emitidas</div>
+      <div class="stat-value" id="stat-facturas"><div class="skeleton"></div></div>
+      <div class="stat-change" id="stat-facturas-sub">— Hoy</div>
     </div>
-    <div class="cart-items" id="cart-items">
-      <div class="cart-empty"><i class="ti ti-shopping-cart"></i><p>Selecciona productos del catálogo.</p></div>
+    <div class="stat-card">
+      <div class="stat-label">IVA Recaudado</div>
+      <div class="stat-value" id="stat-iva"><div class="skeleton"></div></div>
+      <div class="stat-change">16% sobre ventas gravadas</div>
     </div>
-    <div class="invoice-totals">
-      <div class="total-row">
-        <div class="total-title">TOTAL RECIBIDO</div>
-        <div class="total-amounts">
-          <div class="bs" id="t-total-bs">Bs. 0,00</div>
-          <div class="usd" id="t-total-usd">$ 0,00</div>
-        </div>
-      </div>
+    <div class="stat-card">
+      <div class="stat-label">Productos Activos</div>
+      <div class="stat-value" id="stat-productos"><div class="skeleton"></div></div>
+      <div class="stat-change" id="stat-productos-sub">Cargando...</div>
     </div>
-    <div class="payment-section">
-      <div class="action-row">
-        <button class="btn-generate" id="btn-factura" onclick="registrarPago()">
-          <i class="ti ti-check"></i> Registrar Pago
-        </button>
-        <button class="btn-clear" onclick="clearCart()"><i class="ti ti-trash"></i> Limpiar</button>
-      </div>
-    </div>
-  </aside>
-</div>
+  </div>
 
-<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="section-grid">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Últimas Facturas</span>
+        <span class="badge live" id="badge-hoy">Hoy</span>
+      </div>
+      <table>
+        <thead><tr><th>Nro.</th><th>Cliente</th><th>Total</th><th>Estado</th></tr></thead>
+        <tbody id="tbody-facturas">
+          <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Accesos Rápidos</span></div>
+      <table><tbody>
+        <tr><td><a href="app.html" class="acceso-item"><i class="ti ti-receipt" style="color:var(--accent)"></i> Abrir Punto de Venta</a></td></tr>
+        <tr><td><a onclick="abrirModalNota()" class="acceso-item"><i class="ti ti-file-certificate" style="color:var(--accent)"></i> Emitir Nota Manada Villalobos</a></td></tr>
+        <tr><td><a href="fiados.html" class="acceso-item"><i class="ti ti-notebook" style="color:var(--accent)"></i> Cuaderno de Cobranzas</a></td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL PARA NOTA MANUAL -->
+<div class="modal-overlay" id="modal-nota" onclick="closeModalNotaOutside(event)">
   <div class="modal">
-    <div class="modal-title"><i class="ti ti-package"></i> <span id="modal-title-text">Agregar Producto</span></div>
+    <div class="page-title" style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+      <i class="ti ti-shield-half-filled"></i> Nota Exclusiva
+    </div>
+    
     <div class="form-group">
-      <label class="form-label">Foto del Producto (Opcional)</label>
-      <input type="file" class="form-input" id="p-img" accept="image/*" style="padding: 0.5rem; background: var(--bg-card2);">
+      <label class="form-label">Nombre del Miembro (Clienta)</label>
+      <input type="text" id="n-cliente" class="form-input" placeholder="Ej: Loraine">
     </div>
+    
     <div class="form-group">
-      <label class="form-label">Nombre del Producto *</label>
-      <input type="text" class="form-input" id="p-name" placeholder="Ej: Chaqueta Deportiva">
+      <label class="form-label">Cédula / RIF</label>
+      <input type="text" id="n-cedula" class="form-input" placeholder="Opcional">
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Categoría</label>
-        <input type="text" class="form-input" id="p-cat" placeholder="Ej: Ropa">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Código / Referencia</label>
-        <input type="text" class="form-input" id="p-code" placeholder="Ej: CHQ-001">
-      </div>
+    
+    <div class="form-group">
+      <label class="form-label">Descripción del Pedido</label>
+      <textarea id="n-desc" class="form-input" rows="3" placeholder="Ej: 1x Chaqueta Negra&#10;1x Conjunto Deportivo"></textarea>
     </div>
-    <div class="form-row">
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
       <div class="form-group">
-        <label class="form-label">Precio Neto (Bs.) *</label>
-        <input type="number" class="form-input" id="p-price" placeholder="0.00" step="0.01" min="0">
+        <label class="form-label">Total Ref ($)</label>
+        <input type="number" id="n-usd" class="form-input" placeholder="0.00" step="0.01">
       </div>
       <div class="form-group">
-        <label class="form-label">Stock (Unidades)</label>
-        <input type="number" class="form-input" id="p-stock" placeholder="0" min="0">
+        <label class="form-label">Total Pagado (Bs)</label>
+        <input type="number" id="n-bs" class="form-input" placeholder="0.00" step="0.01">
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-modal-save" id="btn-save" onclick="saveProduct()">Guardar Producto</button>
-      <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
+    
+    <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
+      <button class="btn-primary" style="flex:1; justify-content:center;" onclick="generarNotaPDF()">Descargar PDF</button>
+      <button class="btn-primary" style="flex:1; justify-content:center; background:var(--bg-card2); color:var(--text); border:1px solid var(--border);" onclick="cerrarModalNota()">Cancelar</button>
     </div>
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-// RADAR DE ERRORES: Atrapa fallos invisibles y los muestra en pantalla
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-  alert("ERROR DETECTADO:\n" + msg + "\nLínea: " + lineNo);
-  return false;
-};
-window.addEventListener('unhandledrejection', function(event) {
-  alert("ERROR DE RED/SUPABASE:\n" + (event.reason ? event.reason.message : event.reason));
-});
-
 const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const EMPRESA = { nombre: 'VILLALOBOS, C.A.', direccion: 'Tu Tienda Online - Envíos Nacionales', telefono: '+58 414-0000000', email: 'ventas@villalobos.com' };
-const IVA = 0.16;
-let products = [], cart = [], invoiceCounter = 1, editingId = null, currentUserId = null;
-let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
-
 const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtUSD = bs => '$ ' + (bs / tasaDia).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const isGravado = t => { const k=(t||'').toLowerCase(); return k==='gravado'||k.includes('16%'); };
-const formatDate = d => d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3200);
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('es-VE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.replace('login.html');
 }
 
-function updateTasa() {
-  tasaDia = parseFloat(document.getElementById('tasa-input').value) || 40.00;
-  localStorage.setItem('vb_tasa', tasaDia);
-  renderProducts(); renderCart(); showToast(`Tasa: Bs. ${tasaDia.toFixed(2)}`);
-}
+async function loadDashboard() {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) { window.location.replace('login.html'); return; }
+  document.getElementById('user-email').textContent = session.user.email.split('@')[0];
 
-async function doLogout() { await sb.auth.signOut(); window.location.replace('login.html'); }
+  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+  const today = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
 
-async function init() {
-  try {
-    const { data:{ session }, error: sessionError } = await sb.auth.getSession();
-    if (sessionError) throw new Error("Error de sesión: " + sessionError.message);
-    if (!session) { window.location.replace('login.html'); return; }
-    
-    currentUserId = session.user.id;
-    document.getElementById('tasa-input').value = tasaDia.toFixed(2);
-    
-    const { data: lastInv, error: invError } = await sb.from('facturas').select('nro_factura').order('created_at',{ascending:false}).limit(1);
-    if (invError) throw new Error("Error al buscar última factura: " + invError.message);
-    
-    if (lastInv && lastInv.length > 0) invoiceCounter = parseInt(lastInv[0].nro_factura) + 1;
-    document.getElementById('inv-num-label').innerHTML = `Nro. ${String(invoiceCounter).padStart(8,'0')} · <span id="inv-date">${formatDate(new Date())}</span>`;
-    
-    await loadProducts();
-  } catch (err) {
-    alert("FALLO EN INICIO: " + err.message);
-  }
-}
+  const [resFacturas, resProductos] = await Promise.all([
+    sb.from('facturas').select('*').eq('fecha', today).order('created_at',{ascending:false}),
+    sb.from('productos').select('id',{count:'exact'}).eq('activo', true)
+  ]);
 
-async function loadProducts() {
-  try {
-    const { data, error } = await sb.from('productos').select('*').eq('activo', true).order('nombre');
-    if (error) throw new Error("Error al cargar productos: " + error.message);
-    products = data || [];
-    renderProducts();
-  } catch (err) {
-    alert("FALLO EN CARGA DE PRODUCTOS: " + err.message);
-  }
-}
-
-function renderProducts(filter = '') {
-  const grid = document.getElementById('products-grid');
-  const q = document.getElementById('search-input').value.toLowerCase();
-  const list = q ? products.filter(p => p.nombre.toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q) || (p.codigo||'').toLowerCase().includes(q)) : products;
+  const facturas = resFacturas.data || [];
+  const totalVentas = facturas.reduce((s,f) => s + parseFloat(f.total||0), 0);
   
-  if (list.length === 0) { grid.innerHTML = `<div class="empty-state"><i class="ti ti-package"></i><p>Sin resultados.</p></div>`; return; }
+  document.getElementById('stat-ventas').textContent = fmtBs(totalVentas);
+  document.getElementById('stat-ventas-sub').textContent = facturas.length ? '+'+facturas.length+' ventas' : '— Sin ventas';
+  document.getElementById('stat-facturas').textContent = facturas.length;
+  document.getElementById('stat-productos').textContent = resProductos.count || 0;
+  document.getElementById('stat-iva').textContent = 'Bs. 0,00';
 
-  grid.innerHTML = list.map(p => `
-    <div class="product-card" onclick="addToCart(${p.id})">
-      <span class="stock-badge ${p.stock<=2?'low':''}">${p.stock} uds.</span>
-      ${p.imagen ? `<img src="${p.imagen}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem">` : ''}
-      <div class="product-name">${p.nombre}</div>
-      <div class="product-price"><span>${fmtBs(p.precio)}</span><span class="product-price-usd">${fmtUSD(p.precio)}</span></div>
-      <button class="btn-sm secondary" style="width:100%;margin-top:.5rem" onclick="event.stopPropagation();openModal(${p.id})">Editar</button>
-    </div>`).join('');
-}
-
-async function saveProduct() {
-  const nombre = document.getElementById('p-name').value.trim();
-  const precio = parseFloat(document.getElementById('p-price').value);
-  const imgFile = document.getElementById('p-img').files[0];
-  let imagenUrl = editingId ? products.find(x => x.id === editingId).imagen : null;
-  
-  if (imgFile) {
-    const { data: uploadData, error: uploadErr } = await sb.storage.from('catalogo').upload(`${Date.now()}.${imgFile.name.split('.').pop()}`, imgFile);
-    if (uploadErr) { alert("Error subiendo imagen: " + uploadErr.message); return; }
-    imagenUrl = sb.storage.from('catalogo').getPublicUrl(uploadData.path).data.publicUrl;
-  }
-
-  const payload = { nombre, precio, categoria: document.getElementById('p-cat').value, codigo: document.getElementById('p-code').value, stock: parseInt(document.getElementById('p-stock').value), imagen: imagenUrl, activo: true, user_id: currentUserId };
-  
-  let error;
-  if (editingId) {
-    const res = await sb.from('productos').update(payload).eq('id', editingId);
-    error = res.error;
+  const tbody = document.getElementById('tbody-facturas');
+  if (facturas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin facturas emitidas hoy</td></tr>';
   } else {
-    const res = await sb.from('productos').insert(payload);
-    error = res.error;
+    tbody.innerHTML = facturas.slice(0,8).map(f => {
+      let nombreFormateado = f.cliente_nombre || f.cliente || f.nombre_cliente || 'Cliente de Contado';
+      if (nombreFormateado === 'null' || nombreFormateado === 'undefined') nombreFormateado = 'Cliente de Contado';
+      return `<tr>
+        <td style="font-weight:600">${f.nro_factura}</td>
+        <td>${nombreFormateado}</td>
+        <td>${fmtBs(f.total)}</td>
+        <td><span class="status-badge paid"><i class="ti ti-circle-check"></i> Emitida</span></td>
+      </tr>`;
+    }).join('');
   }
+}
+
+// LÓGICA DE LA NOTA DE ENTREGA MANUAL (MANADA VILLALOBOS)
+function abrirModalNota() {
+  document.getElementById('modal-nota').classList.add('open');
+  // Limpiar campos al abrir
+  document.getElementById('n-cliente').value = '';
+  document.getElementById('n-cedula').value = '';
+  document.getElementById('n-desc').value = '';
+  document.getElementById('n-usd').value = '';
+  document.getElementById('n-bs').value = '';
+}
+
+function cerrarModalNota() {
+  document.getElementById('modal-nota').classList.remove('open');
+}
+
+function closeModalNotaOutside(e) {
+  if (e.target === document.getElementById('modal-nota')) cerrarModalNota();
+}
+
+function generarNotaPDF() {
+  const cliente = document.getElementById('n-cliente').value || 'Miembro de la Manada';
+  const cedula = document.getElementById('n-cedula').value || 'N/A';
+  const desc = document.getElementById('n-desc').value || 'Colección Exclusiva VILLALOBOS';
+  const usd = document.getElementById('n-usd').value || '0.00';
+  const bs = document.getElementById('n-bs').value || '0.00';
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
+  const W = 215.9, M = 20;
+
+  // Fondo completamente Oscuro / Elegante
+  doc.setFillColor(8, 9, 10);
+  doc.rect(0, 0, W, 280, 'F');
+
+  // Encabezado
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.text("V I L L A L O B O S", W/2, 30, {align: 'center'});
   
-  if (error) { alert("Error al guardar: " + error.message); return; }
+  doc.setFontSize(10);
+  doc.setFont('Helvetica', 'normal');
+  doc.setTextColor(184, 192, 204);
+  doc.text("NOTA DE ENTREGA EXCLUSIVA", W/2, 38, {align: 'center', letterSpacing: 2});
+
+  // Frase temática
+  doc.setFont('Helvetica', 'italic');
+  doc.setTextColor(139, 149, 163);
+  doc.text('"El estilo es el instinto de la manada."', W/2, 50, {align: 'center'});
+
+  // Recuadro de datos de la clienta
+  doc.setDrawColor(36, 40, 48);
+  doc.setFillColor(17, 19, 22);
+  doc.roundedRect(M, 65, W-M*2, 35, 4, 4, 'FD');
+
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(139, 149, 163);
+  doc.text("DATOS DEL MIEMBRO:", M+6, 75);
+
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text(cliente.toUpperCase(), M+6, 84);
+
+  doc.setFontSize(10);
+  doc.setTextColor(184, 192, 204);
+  doc.text(`Identificación: ${cedula}`, M+6, 92);
+  doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')}`, W-M-6, 92, {align: 'right'});
+
+  // Recuadro de Descripción / Compra
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(139, 149, 163);
+  doc.text("ARTÍCULOS ADQUIRIDOS:", M, 118);
   
-  closeModal(); await loadProducts(); showToast('Producto guardado.');
-}
+  doc.setDrawColor(36, 40, 48);
+  doc.line(M, 122, W-M, 122);
 
-function openModal(id = null) {
-  editingId = id;
-  document.getElementById('modal-title-text').textContent = id ? 'Editar Producto' : 'Agregar Producto';
-  const imgInput = document.getElementById('p-img');
-  if(imgInput) imgInput.value = ''; 
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(240, 244, 248);
   
-  if (id) {
-    const p = products.find(x => x.id === id);
-    document.getElementById('p-name').value  = p.nombre;
-    document.getElementById('p-cat').value   = p.categoria || '';
-    document.getElementById('p-code').value  = p.codigo || '';
-    document.getElementById('p-price').value = p.precio;
-    document.getElementById('p-stock').value = p.stock;
-  } else {
-    ['p-name','p-cat','p-code','p-price','p-stock'].forEach(i => document.getElementById(i).value = '');
-  }
-  document.getElementById('modal-overlay').classList.add('open');
-}
+  // Procesar el texto para que no se salga de la hoja
+  const lineasDesc = doc.splitTextToSize(desc, W-M*2);
+  let y = 132;
+  doc.text(lineasDesc, M, y);
+  y += (lineasDesc.length * 6) + 20;
 
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId = null; }
-function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+  // Recuadro de Totales
+  doc.setFillColor(17, 19, 22);
+  doc.roundedRect(W-M-75, y, 75, 28, 4, 4, 'FD');
 
-function addToCart(id) {
-  const p = products.find(x => x.id === id);
-  if (p.stock <= 0) { showToast('Agotado','error'); return; }
-  const ex = cart.find(x => x.id === id);
-  if (ex) ex.qty++; else cart.push({ ...p, qty: 1 });
-  renderCart();
-}
-
-function renderCart() {
-  const container = document.getElementById('cart-items');
-  container.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <div class="cart-item-info">${item.nombre} <br> <span class="cart-item-price">${fmtBs(item.precio)} (${fmtUSD(item.precio)})</span></div>
-      <div class="cart-item-controls"><button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button><span class="qty-val">${item.qty}</span><button class="qty-btn" onclick="changeQty(${item.id},+1)">+</button></div>
-      <div class="cart-item-total"><span class="cart-total-bs">${fmtBs(item.precio * item.qty)}</span><span class="cart-total-usd">${fmtUSD(item.precio * item.qty)}</span></div>
-    </div>`).join('');
-  let base = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
-  document.getElementById('t-total-bs').textContent = fmtBs(base);
-  document.getElementById('t-total-usd').textContent = fmtUSD(base);
-}
-
-function changeQty(id, delta) {
-  const item = cart.find(x => x.id === id);
-  item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
-  renderCart();
-}
-
-async function registrarPago() {
-  if (cart.length === 0) { 
-    showToast('El carrito está vacío', 'error'); 
-    return; 
-  }
-
-  // Desactivar el botón para no cobrar dos veces por accidente
-  const btn = document.getElementById('btn-factura');
-  if (btn) btn.disabled = true;
-
-  const total = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
-  const payMethod = document.getElementById('pay-method').value;
-  const clientName = document.getElementById('client-name').value.trim() || 'Cliente de Contado';
-  const fechaHoy = new Date().toISOString().split('T')[0];
-
-  // 1. Guardar la Venta en facturas
-  const { error: invErr } = await sb.from('facturas').insert({
-    user_id: currentUserId,
-    nro_factura: invoiceCounter,
-    cliente_nombre: clientName,
-    total: total,
-    fecha: fechaHoy
-  });
-
-  if (invErr) { 
-    alert("Error al registrar factura: " + invErr.message); 
-    if (btn) btn.disabled = false;
-    return; 
-  }
-
-  // 2. Guardar el Fiado (El agente problemático, ahora blindado)
-  if (payMethod === 'FIADO') {
-    const totalUsd = total / tasaDia;
-    
-    const { error: fiadoErr } = await sb.from('fiados').insert({
-      user_id: currentUserId,
-      cliente_nombre: clientName,
-      total_usd: parseFloat(totalUsd.toFixed(2)),
-      abonado_usd: 0,
-      restante_usd: parseFloat(totalUsd.toFixed(2)),
-      estado: 'PENDIENTE',
-      fecha_emision: fechaHoy
-    });
-
-    if (fiadoErr) {
-      alert("ATENCIÓN - Error guardando fiado: " + fiadoErr.message);
-    }
-  }
-
-  // 3. Descontar el inventario
-  for (const item of cart) {
-    const p = products.find(x => x.id === item.id);
-    if (p) {
-      await sb.from('productos').update({ stock: p.stock - item.qty }).eq('id', item.id);
-    }
-  }
-
-  showToast('Pago procesado correctamente.');
-  cart = []; 
-  renderCart(); 
-  await loadProducts();
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(255, 255, 255);
+  doc.text("TOTAL:", W-M-70, y+12);
+  doc.text(`$ ${usd}`, W-M-6, y+12, {align: 'right'});
   
-  if (btn) btn.disabled = false;
+  doc.setFontSize(11);
+  doc.setTextColor(62, 207, 142); // Verde para los Bolívares
+  doc.text(`Bs. ${bs}`, W-M-6, y+22, {align: 'right'});
+
+  // Pie de página
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(100, 110, 120);
+  doc.text("BIENVENIDA A LA MANADA VILLALOBOS", W/2, 260, {align: 'center', letterSpacing: 1});
+  doc.text("IG: @TuInstagram  |  Envíos Nacionales", W/2, 265, {align: 'center'});
+
+  // Descarga del PDF
+  const nombreArchivo = `Nota_Manada_${cliente.replace(/\s+/g, '_')}.pdf`;
+  doc.save(nombreArchivo);
+  
+  cerrarModalNota();
 }
-init();
+
+loadDashboard();
 </script>
 </body>
 </html>
