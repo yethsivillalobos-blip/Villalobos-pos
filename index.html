@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Dashboard</title>
+<title>VILLALOBOS — Dashboard & Nómina</title>
 <link rel="manifest" href="./manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Librería para generar los PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{--bg-main:#08090a;--bg-card:#111316;--bg-card2:#16191e;--border:#242830;--text:#f0f4f8;--muted:#8b95a3;--accent:#b8c0cc;--green:#3ecf8e;--red:#ff6b6b;--yellow:#ffd166}
@@ -27,17 +26,17 @@
   .user-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .user-role{font-size:.7rem;color:var(--muted)}
   .main{margin-left:240px;flex:1;padding:2rem;min-height:100vh}
-  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem; flex-wrap:wrap; gap:1rem;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
   .page-title{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700}
   .page-subtitle{font-size:.8rem;color:var(--muted);margin-top:.2rem}
   .btn-primary{background:var(--text);color:var(--bg-main);border:none;padding:.65rem 1.25rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif;text-decoration:none}
   .btn-primary:hover{background:var(--accent)}
-  .btn-wolf{background:linear-gradient(135deg, #2a2d35 0%, #111316 100%); color:var(--text); border:1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.5);}
-  .btn-wolf:hover{border-color:var(--accent); color:#fff;}
+  .btn-wolf{background:linear-gradient(135deg, #2a2d35 0%, #111316 100%);color:var(--text);border:1px solid var(--border);box-shadow:0 4px 15px rgba(0,0,0,0.5)}
+  .btn-wolf:hover{border-color:var(--accent);color:#fff}
   .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
   .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem}
   .stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem}
-  .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.75rem;font-weight:700}
+  .stat-value{font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700}
   .stat-change{font-size:.75rem;color:var(--muted);margin-top:.3rem}
   .stat-change.up{color:var(--green)}
   .section-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
@@ -55,10 +54,10 @@
   .status-badge.paid{background:rgba(62,207,142,.1);color:var(--green)}
   .skeleton{background:linear-gradient(90deg,var(--bg-card2) 25%,var(--border) 50%,var(--bg-card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;height:1.75rem;width:80%}
   @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-  .acceso-item{display:flex;align-items:center;gap:.5rem;color:var(--text);text-decoration:none;transition:.15s; cursor:pointer;}
+  .acceso-item{display:flex;align-items:center;gap:.5rem;color:var(--text);text-decoration:none;transition:.15s;cursor:pointer}
   .acceso-item:hover{color:var(--accent)}
 
-  /* Modal de la Nota Manual */
+  /* Modales */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px)}
   .modal-overlay.open{opacity:1;pointer-events:all}
   .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:.2s}
@@ -81,6 +80,7 @@
   <a class="nav-item" href="app.html"><i class="ti ti-receipt"></i> Punto de Venta</a>
   <div class="nav-section" style="margin-top:1rem">Herramientas</div>
   <a class="nav-item" onclick="abrirModalNota()"><i class="ti ti-file-certificate"></i> Nota Manual</a>
+  <a class="nav-item" onclick="abrirModalNomina()"><i class="ti ti-calculator"></i> Calcular Nómina</a>
   <a class="nav-item" href="catalogo.html" target="_blank"><i class="ti ti-shopping-cart"></i> Ver Catálogo</a>
   <div class="nav-section" style="margin-top:1rem">Gestión</div>
   <a class="nav-item" href="fiados.html"><i class="ti ti-notebook"></i> Cuentas por Cobrar</a>
@@ -99,32 +99,34 @@
       <h1 class="page-title">Dashboard</h1>
       <p class="page-subtitle">Resumen de operaciones — <span id="today-date"></span></p>
     </div>
-    <div style="display:flex; gap:0.5rem;">
-      <button class="btn-primary btn-wolf" onclick="abrirModalNota()"><i class="ti ti-file-certificate"></i> Crear Nota</button>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button class="btn-primary btn-wolf" onclick="abrirModalNota()"><i class="ti ti-file-certificate"></i> Nota</button>
+      <button class="btn-primary" style="background:var(--bg-card2);border:1px solid var(--border)" onclick="abrirModalNomina()"><i class="ti ti-calculator"></i> Nómina Quincenal</button>
       <a href="app.html" class="btn-primary"><i class="ti ti-plus"></i> POS</a>
     </div>
   </div>
 
+  <!-- TARJETAS DE MÉTRICAS (DÍA, SEMANA, MES) -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-label">Ventas Hoy</div>
-      <div class="stat-value" id="stat-ventas"><div class="skeleton"></div></div>
-      <div class="stat-change" id="stat-ventas-sub">Cargando...</div>
+      <div class="stat-value" id="stat-hoy"><div class="skeleton"></div></div>
+      <div class="stat-change" id="stat-hoy-sub">Calculando...</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Facturas Emitidas</div>
-      <div class="stat-value" id="stat-facturas"><div class="skeleton"></div></div>
-      <div class="stat-change" id="stat-facturas-sub">— Hoy</div>
+      <div class="stat-label">Ventas de la Semana</div>
+      <div class="stat-value" id="stat-semana"><div class="skeleton"></div></div>
+      <div class="stat-change">Últimos 7 días</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">IVA Recaudado</div>
-      <div class="stat-value" id="stat-iva"><div class="skeleton"></div></div>
-      <div class="stat-change">16% sobre ventas gravadas</div>
+      <div class="stat-label">Ventas del Mes</div>
+      <div class="stat-value" id="stat-mes"><div class="skeleton"></div></div>
+      <div class="stat-change">Acumulado actual</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Productos Activos</div>
       <div class="stat-value" id="stat-productos"><div class="skeleton"></div></div>
-      <div class="stat-change" id="stat-productos-sub">Cargando...</div>
+      <div class="stat-change" id="stat-productos-sub">En catálogo</div>
     </div>
   </div>
 
@@ -144,7 +146,8 @@
     <div class="card">
       <div class="card-header"><span class="card-title">Accesos Rápidos</span></div>
       <table><tbody>
-        <tr><td><a href="app.html" class="acceso-item"><i class="ti ti-receipt" style="color:var(--accent)"></i> Abrir Punto de Venta</a></td></tr>
+        <tr><td><a href="app.html" class="acceso-item"><i class="ti ti-receipt" style="color:var(--accent)"></i> Abrir Punto de Venta (POS)</a></td></tr>
+        <tr><td><a onclick="abrirModalNomina()" class="acceso-item"><i class="ti ti-calculator" style="color:var(--accent)"></i> Calcular Pago Quincenal Costurera ($3/pieza)</a></td></tr>
         <tr><td><a onclick="abrirModalNota()" class="acceso-item"><i class="ti ti-file-certificate" style="color:var(--accent)"></i> Emitir Nota Manada Villalobos</a></td></tr>
         <tr><td><a href="fiados.html" class="acceso-item"><i class="ti ti-notebook" style="color:var(--accent)"></i> Cuaderno de Cobranzas</a></td></tr>
       </tbody></table>
@@ -152,29 +155,46 @@
   </div>
 </main>
 
+<!-- MODAL PARA CÁLCULO DE NÓMINA -->
+<div class="modal-overlay" id="modal-nomina" onclick="closeModalNominaOutside(event)">
+  <div class="modal">
+    <div class="page-title" style="margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem">
+      <i class="ti ti-calculator"></i> Nómina de Producción
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cantidad de Prendas Confeccionadas en la Quincena</label>
+      <input type="number" id="nom-piezas" class="form-input" placeholder="Ej: 25" min="0" oninput="calcularNominaTotal()">
+    </div>
+    <div style="background:var(--bg-main);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.5rem">
+      <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;margin-bottom:0.25rem">Total a Pagar (Tarifa: $3 c/u):</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;font-weight:700;color:var(--green)" id="nom-total-usd">$ 0.00</div>
+      <div style="font-size:0.9rem;font-weight:600;margin-top:0.25rem" id="nom-total-bs">Bs. 0,00 (Tasa BCV del día)</div>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn-primary" style="flex:1;justify-content:center" onclick="cerrarModalNomina()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PARA NOTA MANUAL -->
 <div class="modal-overlay" id="modal-nota" onclick="closeModalNotaOutside(event)">
   <div class="modal">
-    <div class="page-title" style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+    <div class="page-title" style="margin-bottom:1.5rem;display:flex;align-items:center;gap:0.5rem">
       <i class="ti ti-shield-half-filled"></i> Nota Exclusiva
     </div>
-    
     <div class="form-group">
       <label class="form-label">Nombre del Miembro (Clienta)</label>
       <input type="text" id="n-cliente" class="form-input" placeholder="Ej: Loraine">
     </div>
-    
     <div class="form-group">
       <label class="form-label">Cédula / RIF</label>
       <input type="text" id="n-cedula" class="form-input" placeholder="Opcional">
     </div>
-    
     <div class="form-group">
       <label class="form-label">Descripción del Pedido</label>
       <textarea id="n-desc" class="form-input" rows="3" placeholder="Ej: 1x Chaqueta Negra&#10;1x Conjunto Deportivo"></textarea>
     </div>
-    
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       <div class="form-group">
         <label class="form-label">Total Ref ($)</label>
         <input type="number" id="n-usd" class="form-input" placeholder="0.00" step="0.01">
@@ -184,10 +204,9 @@
         <input type="number" id="n-bs" class="form-input" placeholder="0.00" step="0.01">
       </div>
     </div>
-    
-    <div style="display:flex; gap:0.75rem; margin-top:1.5rem;">
-      <button class="btn-primary" style="flex:1; justify-content:center;" onclick="generarNotaPDF()">Descargar PDF</button>
-      <button class="btn-primary" style="flex:1; justify-content:center; background:var(--bg-card2); color:var(--text); border:1px solid var(--border);" onclick="cerrarModalNota()">Cancelar</button>
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem">
+      <button class="btn-primary" style="flex:1;justify-content:center" onclick="generarNotaPDF()">Descargar PDF</button>
+      <button class="btn-primary" style="flex:1;justify-content:center;background:var(--bg-card2);color:var(--text);border:1px solid var(--border)" onclick="cerrarModalNota()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -198,6 +217,7 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+let tasaActualBCV = 40.00; // Se actualiza con la API
 
 document.getElementById('today-date').textContent = new Date().toLocaleDateString('es-VE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
@@ -206,33 +226,63 @@ async function doLogout() {
   window.location.replace('login.html');
 }
 
+// Obtener tasa para los cálculos de nómina
+async function obtenerTasaDashboard() {
+  try {
+    const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial');
+    const data = await res.json();
+    if (data && data.promedio) tasaActualBCV = data.promedio;
+  } catch (e) {
+    tasaActualBCV = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
+  }
+}
+
 async function loadDashboard() {
   const { data:{ session } } = await sb.auth.getSession();
   if (!session) { window.location.replace('login.html'); return; }
   document.getElementById('user-email').textContent = session.user.email.split('@')[0];
 
-  const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-  const today = (new Date(Date.now() - tzOffset)).toISOString().split('T')[0];
+  await obtenerTasaDashboard();
 
+  const now = new Date();
+  const tzOffset = now.getTimezoneOffset() * 60000;
+  const todayStr = (new Date(now.getTime() - tzOffset)).toISOString().split('T')[0];
+  
+  const lastWeek = new Date();
+  lastWeek.setDate(now.getDate() - 7);
+  const weekStr = (new Date(lastWeek.getTime() - tzOffset)).toISOString().split('T')[0];
+
+  const firstDayMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+
+  // Consultar todas las facturas del mes actual y productos
   const [resFacturas, resProductos] = await Promise.all([
-    sb.from('facturas').select('*').eq('fecha', today).order('created_at',{ascending:false}),
+    sb.from('facturas').select('*').gte('fecha', firstDayMonth).order('created_at',{ascending:false}),
     sb.from('productos').select('id',{count:'exact'}).eq('activo', true)
   ]);
 
-  const facturas = resFacturas.data || [];
-  const totalVentas = facturas.reduce((s,f) => s + parseFloat(f.total||0), 0);
-  
-  document.getElementById('stat-ventas').textContent = fmtBs(totalVentas);
-  document.getElementById('stat-ventas-sub').textContent = facturas.length ? '+'+facturas.length+' ventas' : '— Sin ventas';
-  document.getElementById('stat-facturas').textContent = facturas.length;
-  document.getElementById('stat-productos').textContent = resProductos.count || 0;
-  document.getElementById('stat-iva').textContent = 'Bs. 0,00';
+  const todasFacturas = resFacturas.data || [];
 
+  // Filtrar métricas
+  const facturasHoy = todasFacturas.filter(f => f.fecha === todayStr);
+  const facturasSemana = todasFacturas.filter(f => f.fecha >= weekStr);
+
+  const totalHoy = facturasHoy.reduce((s,f) => s + parseFloat(f.total||0), 0);
+  const totalSemana = facturasSemana.reduce((s,f) => s + parseFloat(f.total||0), 0);
+  const totalMes = todasFacturas.reduce((s,f) => s + parseFloat(f.total||0), 0);
+
+  // Pintar métricas en tarjetas
+  document.getElementById('stat-hoy').textContent = fmtBs(totalHoy);
+  document.getElementById('stat-hoy-sub').textContent = facturasHoy.length ? '+'+facturasHoy.length+' ventas hoy' : 'Sin ventas hoy';
+  document.getElementById('stat-semana').textContent = fmtBs(totalSemana);
+  document.getElementById('stat-mes').textContent = fmtBs(totalMes);
+  document.getElementById('stat-productos').textContent = resProductos.count || 0;
+
+  // Pintar tabla de últimas facturas de hoy
   const tbody = document.getElementById('tbody-facturas');
-  if (facturas.length === 0) {
+  if (facturasHoy.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem">Sin facturas emitidas hoy</td></tr>';
   } else {
-    tbody.innerHTML = facturas.slice(0,8).map(f => {
+    tbody.innerHTML = facturasHoy.slice(0,8).map(f => {
       let nombreFormateado = f.cliente_nombre || f.cliente || f.nombre_cliente || 'Cliente de Contado';
       if (nombreFormateado === 'null' || nombreFormateado === 'undefined') nombreFormateado = 'Cliente de Contado';
       return `<tr>
@@ -245,25 +295,42 @@ async function loadDashboard() {
   }
 }
 
-// LÓGICA DE LA NOTA DE ENTREGA MANUAL (MANADA VILLALOBOS)
+// CÁLCULO DE NÓMINA QUINCENAL ($3 por prenda)
+function abrirModalNomina() {
+  document.getElementById('modal-nomina').classList.add('open');
+  document.getElementById('nom-piezas').value = '';
+  document.getElementById('nom-total-usd').textContent = '$ 0.00';
+  document.getElementById('nom-total-bs').textContent = 'Bs. 0,00';
+}
+function cerrarModalNomina() {
+  document.getElementById('modal-nomina').classList.remove('open');
+}
+function closeModalNominaOutside(e) {
+  if (e.target === document.getElementById('modal-nomina')) cerrarModalNomina();
+}
+function calcularNominaTotal() {
+  const piezas = parseInt(document.getElementById('nom-piezas').value) || 0;
+  const totalUsd = piezas * 3.00;
+  const totalBs = totalUsd * tasaActualBCV;
+  document.getElementById('nom-total-usd').textContent = `$ ${totalUsd.toFixed(2)}`;
+  document.getElementById('nom-total-bs').textContent = `${fmtBs(totalBs)} (Tasa: ${tasaActualBCV.toFixed(2)})`;
+}
+
+// NOTA MANUAL PDF
 function abrirModalNota() {
   document.getElementById('modal-nota').classList.add('open');
-  // Limpiar campos al abrir
   document.getElementById('n-cliente').value = '';
   document.getElementById('n-cedula').value = '';
   document.getElementById('n-desc').value = '';
   document.getElementById('n-usd').value = '';
   document.getElementById('n-bs').value = '';
 }
-
 function cerrarModalNota() {
   document.getElementById('modal-nota').classList.remove('open');
 }
-
 function closeModalNotaOutside(e) {
   if (e.target === document.getElementById('modal-nota')) cerrarModalNota();
 }
-
 function generarNotaPDF() {
   const cliente = document.getElementById('n-cliente').value || 'Miembro de la Manada';
   const cedula = document.getElementById('n-cedula').value || 'N/A';
@@ -275,11 +342,9 @@ function generarNotaPDF() {
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
   const W = 215.9, M = 20;
 
-  // Fondo completamente Oscuro / Elegante
   doc.setFillColor(8, 9, 10);
   doc.rect(0, 0, W, 280, 'F');
 
-  // Encabezado
   doc.setTextColor(255, 255, 255);
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(24);
@@ -288,14 +353,12 @@ function generarNotaPDF() {
   doc.setFontSize(10);
   doc.setFont('Helvetica', 'normal');
   doc.setTextColor(184, 192, 204);
-  doc.text("NOTA DE ENTREGA EXCLUSIVA", W/2, 38, {align: 'center', letterSpacing: 2});
+  doc.text("NOTA DE ENTREGA EXCLUSIVA", W/2, 38, {align: 'center'});
 
-  // Frase temática
   doc.setFont('Helvetica', 'italic');
   doc.setTextColor(139, 149, 163);
   doc.text('"El estilo es el instinto de la manada."', W/2, 50, {align: 'center'});
 
-  // Recuadro de datos de la clienta
   doc.setDrawColor(36, 40, 48);
   doc.setFillColor(17, 19, 22);
   doc.roundedRect(M, 65, W-M*2, 35, 4, 4, 'FD');
@@ -314,7 +377,6 @@ function generarNotaPDF() {
   doc.text(`Identificación: ${cedula}`, M+6, 92);
   doc.text(`Fecha: ${new Date().toLocaleDateString('es-VE')}`, W-M-6, 92, {align: 'right'});
 
-  // Recuadro de Descripción / Compra
   doc.setFont('Helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(139, 149, 163);
@@ -327,13 +389,11 @@ function generarNotaPDF() {
   doc.setFontSize(11);
   doc.setTextColor(240, 244, 248);
   
-  // Procesar el texto para que no se salga de la hoja
   const lineasDesc = doc.splitTextToSize(desc, W-M*2);
   let y = 132;
   doc.text(lineasDesc, M, y);
   y += (lineasDesc.length * 6) + 20;
 
-  // Recuadro de Totales
   doc.setFillColor(17, 19, 22);
   doc.roundedRect(W-M-75, y, 75, 28, 4, 4, 'FD');
 
@@ -344,20 +404,15 @@ function generarNotaPDF() {
   doc.text(`$ ${usd}`, W-M-6, y+12, {align: 'right'});
   
   doc.setFontSize(11);
-  doc.setTextColor(62, 207, 142); // Verde para los Bolívares
+  doc.setTextColor(62, 207, 142);
   doc.text(`Bs. ${bs}`, W-M-6, y+22, {align: 'right'});
 
-  // Pie de página
   doc.setFont('Helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(100, 110, 120);
-  doc.text("BIENVENIDA A LA MANADA VILLALOBOS", W/2, 260, {align: 'center', letterSpacing: 1});
-  doc.text("IG: @TuInstagram  |  Envíos Nacionales", W/2, 265, {align: 'center'});
+  doc.text("BIENVENIDA A LA MANADA VILLALOBOS", W/2, 260, {align: 'center'});
 
-  // Descarga del PDF
-  const nombreArchivo = `Nota_Manada_${cliente.replace(/\s+/g, '_')}.pdf`;
-  doc.save(nombreArchivo);
-  
+  doc.save(`Nota_Manada_${cliente.replace(/\s+/g, '_')}.pdf`);
   cerrarModalNota();
 }
 
