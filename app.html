@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VILLALOBOS — Punto de Venta</title>
+<title>VILLALOBOS — Punto de Venta ($)</title>
 <link rel="manifest" href="./manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -37,12 +37,11 @@
   .product-card:hover{border-color:var(--accent);background:var(--bg-card2);transform:translateY(-1px)}
   .product-name{font-size:.875rem;font-weight:600;margin-bottom:.3rem;line-height:1.3}
   .product-price{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;font-weight:700;display:flex;justify-content:space-between;align-items:center}
-  .product-price-usd{font-size:.8rem;color:var(--green);font-weight:600}
+  .product-price-bs{font-size:.8rem;color:var(--muted);font-weight:600}
   .stock-badge{position:absolute;top:.6rem;right:.6rem;font-size:.62rem;padding:.15rem .45rem;border-radius:20px;background:rgba(62,207,142,.1);color:var(--green)}
   .stock-badge.low{background:rgba(255,209,102,.1);color:var(--yellow)}
   .empty-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem;color:var(--muted);text-align:center;gap:1rem}
   .empty-state i{font-size:3rem;opacity:.3}
-  .empty-state p{font-size:.875rem}
   .invoice-panel{width:380px;min-width:340px;display:flex;flex-direction:column;background:var(--bg-card);overflow:hidden;flex-shrink:0}
   .invoice-header{padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
   .invoice-title{font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.1rem}
@@ -56,34 +55,27 @@
   .cart-items::-webkit-scrollbar{width:3px}
   .cart-items::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
   .cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);gap:.75rem;padding:2rem;text-align:center}
-  .cart-empty i{font-size:2.5rem;opacity:.25}
-  .cart-empty p{font-size:.8rem}
   .cart-item{display:flex;align-items:flex-start;gap:.5rem;padding:.6rem 1.25rem;border-bottom:1px solid var(--border);transition:.15s}
-  .cart-item:hover{background:rgba(255,255,255,.02)}
   .cart-item-info{flex:1;min-width:0}
   .cart-item-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .cart-item-price{font-size:.72rem;color:var(--muted);display:flex;gap:.5rem}
-  .cart-item-price-usd{color:var(--green)}
   .cart-item-controls{display:flex;align-items:center;gap:.3rem;flex-shrink:0;margin-top:.15rem}
   .qty-btn{width:22px;height:22px;border-radius:5px;background:var(--bg-card2);border:1px solid var(--border);color:var(--text);font-size:.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-  .qty-btn:hover{background:var(--border)}
   .qty-val{font-size:.8rem;font-weight:600;min-width:20px;text-align:center}
   .cart-item-total{display:flex;flex-direction:column;align-items:flex-end;min-width:64px;flex-shrink:0;padding-top:.15rem}
-  .cart-total-bs{font-size:.8rem;font-weight:600}
-  .cart-total-usd{font-size:.65rem;color:var(--green);font-weight:600}
+  .cart-total-main{font-size:.8rem;font-weight:600;color:var(--text)}
+  .cart-total-sub{font-size:.65rem;color:var(--muted);font-weight:600}
   .invoice-totals{padding:.75rem 1.25rem;border-top:1px solid var(--border);background:var(--bg-card2);flex-shrink:0}
   .total-row{display:flex;justify-content:space-between;align-items:center;padding:.2rem 0}
   .total-title{font-weight:700;font-size:1rem;color:var(--text)}
   .total-amounts{text-align:right}
-  .total-amounts .bs{font-weight:700;font-size:1.1rem;font-family:'Space Grotesk',sans-serif}
-  .total-amounts .usd{font-size:.85rem;color:var(--green);font-weight:600;margin-top:.1rem}
+  .total-amounts .main-total{font-weight:700;font-size:1.1rem;font-family:'Space Grotesk',sans-serif; color:var(--green)}
+  .total-amounts .sub-total{font-size:.85rem;color:var(--muted);font-weight:600;margin-top:.1rem}
   .payment-section{padding:.75rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
   .action-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
   .btn-generate{background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
   .btn-generate:hover{background:var(--accent);transform:translateY(-1px)}
-  .btn-generate:disabled{opacity:.4;cursor:not-allowed;transform:none}
   .btn-clear{background:rgba(255,107,107,.08);color:var(--red);border:1px solid rgba(255,107,107,.2);padding:.7rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-clear:hover{background:rgba(255,107,107,.15)}
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s;backdrop-filter:blur(4px)}
   .modal-overlay.open{opacity:1;pointer-events:all}
   .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:2rem;width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:.2s}
@@ -92,14 +84,11 @@
   .form-group{margin-bottom:1rem}
   .form-label{display:block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem}
   .form-input{width:100%;background:var(--bg-main);border:1px solid var(--border);color:var(--text);padding:.65rem .85rem;border-radius:8px;font-size:.875rem;outline:none;transition:.2s;font-family:'Inter',sans-serif}
-  .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(184,192,204,.08)}
   .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
   .modal-actions{display:flex;gap:.75rem;margin-top:1.5rem}
-  .btn-modal-save{flex:1;background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-modal-save:hover{background:var(--accent)}
-  .btn-modal-cancel{flex:1;background:var(--bg-card2);color:var(--muted);border:1px solid var(--border);padding:.7rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
-  .btn-modal-cancel:hover{color:var(--text)}
-  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.8rem;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(20px);opacity:0;transition:.3s;display:flex;align-items:center;gap:.5rem;max-width:300px}
+  .btn-modal-save{flex:1;background:var(--text);color:var(--bg-main);border:none;padding:.7rem;border-radius:8px;font-weight:700;font-size:.875rem;cursor:pointer;}
+  .btn-modal-cancel{flex:1;background:var(--bg-card2);color:var(--muted);border:1px solid var(--border);padding:.7rem;border-radius:8px;font-weight:600;font-size:.875rem;cursor:pointer;}
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.8rem;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,.4);transform:translateY(20px);opacity:0;transition:.3s;display:flex;align-items:center;gap:.5rem}
   .toast.show{transform:translateY(0);opacity:1}
   .toast.success{border-color:rgba(62,207,142,.3);color:var(--green)}
   .toast.error{border-color:rgba(255,107,107,.3);color:var(--red)}
@@ -146,7 +135,6 @@
             <option value="V">V – Natural</option>
             <option value="J">J – Jurídico</option>
             <option value="E">E – Extranjero</option>
-            <option value="P">P – Pasaporte</option>
           </select>
         </div>
         <div>
@@ -159,7 +147,6 @@
         <input type="text" class="field-input" id="client-name" placeholder="Cliente de Contado">
       </div>
       <div class="field-row">
-        <input type="hidden" id="invoice-type" value="NOTA_ENTREGA">
         <div>
           <div class="field-label">Forma de Pago</div>
           <select class="field-input" id="pay-method">
@@ -178,10 +165,11 @@
     </div>
     <div class="invoice-totals">
       <div class="total-row">
-        <div class="total-title">TOTAL RECIBIDO</div>
+        <div class="total-title">TOTAL A COBRAR</div>
         <div class="total-amounts">
-          <div class="bs" id="t-total-bs">Bs. 0,00</div>
-          <div class="usd" id="t-total-usd">$ 0,00</div>
+          <!-- AHORA EL TOTAL PRINCIPAL ES EN DÓLARES -->
+          <div class="main-total" id="t-total-usd">$ 0.00</div>
+          <div class="sub-total" id="t-total-bs">Bs. 0,00</div>
         </div>
       </div>
     </div>
@@ -224,7 +212,8 @@
     
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">Precio Neto (Bs.) *</label>
+        <!-- AHORA PIDE PRECIO EN DÓLARES -->
+        <label class="form-label">Precio Neto ($) *</label>
         <input type="number" class="form-input" id="p-price" placeholder="0.00" step="0.01" min="0">
       </div>
       <div class="form-group">
@@ -238,7 +227,6 @@
         <button class="btn-modal-save" onclick="saveProduct()">Guardar Producto</button>
         <button class="btn-modal-cancel" onclick="closeModal()">Cancelar</button>
       </div>
-      <!-- Botón especial para eliminar/inactivar prendas sin reposición -->
       <button id="btn-eliminar-prenda" class="btn-modal-cancel" style="display:none; width:100%; background:rgba(255,107,107,0.1); color:var(--red); border-color:rgba(255,107,107,0.3);" onclick="eliminarProductoActual()">
         <i class="ti ti-trash"></i> Eliminar Prenda (Sin Reposición)
       </button>
@@ -258,13 +246,12 @@ const SUPABASE_URL  = 'https://nmjabbfapjxlejwlkucu.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tamFiYmZhcGp4bGVqd2xrdWN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTE4MzYsImV4cCI6MjEwMjM4NzgzNn0.LTIse95x2jiLczlaf77eHN44XnQmAIdm45pR4AwPQr4';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const EMPRESA = { nombre: 'VILLALOBOS, C.A.', direccion: 'Tu Tienda Online - Envíos Nacionales', telefono: '+58 414-0000000', email: 'ventas@villalobos.com' };
-const IVA = 0.16;
 let products = [], cart = [], invoiceCounter = 1, editingId = null, currentUserId = null;
 let tasaDia = parseFloat(localStorage.getItem('vb_tasa')) || 40.00;
 
-const fmtBs = n => 'Bs. ' + parseFloat(n||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtUSD = bs => '$ ' + (bs / tasaDia).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+// FUNCIONES DE FORMATEO INVERTIDAS: Ahora la base es USD
+const fmtUSD = usd => '$ ' + parseFloat(usd||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBs = usd => 'Bs. ' + (parseFloat(usd||0) * tasaDia).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const formatDate = d => d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});
 
 function showToast(msg, type='success') {
@@ -343,14 +330,14 @@ function renderProducts() {
       <span class="stock-badge ${p.stock<=2?'low':''}">${p.stock} uds.</span>
       ${p.imagen ? `<img src="${p.imagen}" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem">` : ''}
       <div class="product-name">${p.nombre}</div>
-      <div class="product-price"><span>${fmtBs(p.precio)}</span><span class="product-price-usd">${fmtUSD(p.precio)}</span></div>
+      <div class="product-price"><span>${fmtUSD(p.precio)}</span><span class="product-price-bs">${fmtBs(p.precio)}</span></div>
       <button class="btn-sm secondary" style="width:100%;margin-top:.5rem" onclick="event.stopPropagation();openModal(${p.id})">Editar</button>
     </div>`).join('');
 }
 
 async function saveProduct() {
   const nombre = document.getElementById('p-name').value.trim();
-  const precio = parseFloat(document.getElementById('p-price').value);
+  const precio = parseFloat(document.getElementById('p-price').value); // AHORA ES EN DÓLARES
   const imgFile = document.getElementById('p-img').files[0];
   let imagenUrl = editingId ? products.find(x => x.id === editingId).imagen : null;
   
@@ -376,21 +363,15 @@ async function saveProduct() {
   closeModal(); await loadProducts(); showToast('Producto guardado.');
 }
 
-// NUEVA FUNCIÓN: Eliminar (inactivar) prenda sin reposición
 async function eliminarProductoActual() {
   if (!editingId) return;
   if (!confirm('¿Seguro que deseas eliminar esta prenda? Al no tener reposición, se retirará permanentemente de la tienda y del catálogo.')) return;
 
   const { error } = await sb.from('productos').update({ activo: false }).eq('id', editingId);
   
-  if (error) {
-    alert("Error al eliminar: " + error.message);
-    return;
-  }
+  if (error) { alert("Error al eliminar: " + error.message); return; }
 
-  closeModal();
-  await loadProducts();
-  showToast('Prenda retirada del inventario.', 'error');
+  closeModal(); await loadProducts(); showToast('Prenda retirada del inventario.', 'error');
 }
 
 function openModal(id = null) {
@@ -406,12 +387,12 @@ function openModal(id = null) {
     document.getElementById('p-name').value  = p.nombre;
     document.getElementById('p-cat').value   = p.categoria || '';
     document.getElementById('p-code').value  = p.codigo || '';
-    document.getElementById('p-price').value = p.precio;
+    document.getElementById('p-price').value = p.precio; // Muestra el valor en USD
     document.getElementById('p-stock').value = p.stock;
-    if (btnEliminar) btnEliminar.style.display = 'flex'; // Mostrar botón eliminar al editar
+    if (btnEliminar) btnEliminar.style.display = 'flex';
   } else {
     ['p-name','p-cat','p-code','p-price','p-stock'].forEach(i => document.getElementById(i).value = '');
-    if (btnEliminar) btnEliminar.style.display = 'none'; // Ocultar al crear nuevo
+    if (btnEliminar) btnEliminar.style.display = 'none';
   }
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -431,13 +412,14 @@ function renderCart() {
   const container = document.getElementById('cart-items');
   container.innerHTML = cart.map(item => `
     <div class="cart-item">
-      <div class="cart-item-info">${item.nombre} <br> <span class="cart-item-price">${fmtBs(item.precio)} (${fmtUSD(item.precio)})</span></div>
+      <div class="cart-item-info">${item.nombre} <br> <span class="cart-item-price">${fmtUSD(item.precio)} (${fmtBs(item.precio)})</span></div>
       <div class="cart-item-controls"><button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button><span class="qty-val">${item.qty}</span><button class="qty-btn" onclick="changeQty(${item.id},+1)">+</button></div>
-      <div class="cart-item-total"><span class="cart-total-bs">${fmtBs(item.precio * item.qty)}</span><span class="cart-total-usd">${fmtUSD(item.precio * item.qty)}</span></div>
+      <div class="cart-item-total"><span class="cart-total-main">${fmtUSD(item.precio * item.qty)}</span><span class="cart-total-sub">${fmtBs(item.precio * item.qty)}</span></div>
     </div>`).join('');
-  let base = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
-  document.getElementById('t-total-bs').textContent = fmtBs(base);
-  document.getElementById('t-total-usd').textContent = fmtUSD(base);
+    
+  let baseUsd = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
+  document.getElementById('t-total-usd').textContent = fmtUSD(baseUsd);
+  document.getElementById('t-total-bs').textContent = fmtBs(baseUsd);
 }
 
 function changeQty(id, delta) {
@@ -446,6 +428,7 @@ function changeQty(id, delta) {
   if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
   renderCart();
 }
+function clearCart() { cart = []; renderCart(); }
 
 async function registrarPago() {
   if (cart.length === 0) { showToast('El carrito está vacío', 'error'); return; }
@@ -453,16 +436,20 @@ async function registrarPago() {
   const btn = document.getElementById('btn-factura');
   if (btn) btn.disabled = true;
 
-  const total = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
+  // Calculamos el total en USD y su equivalente en Bs.
+  const totalUsd = cart.reduce((acc,i) => acc + (i.precio * i.qty), 0);
+  const totalBs = totalUsd * tasaDia; 
+  
   const payMethod = document.getElementById('pay-method').value;
   const clientName = document.getElementById('client-name').value.trim() || 'Cliente de Contado';
   const fechaHoy = new Date().toISOString().split('T')[0];
 
+  // Guardamos la factura en Bs. para no descontrolar el Dashboard ni tu contabilidad en bancos
   const { error: invErr } = await sb.from('facturas').insert({
     user_id: currentUserId,
     nro_factura: invoiceCounter,
     cliente_nombre: clientName,
-    total: total,
+    total: totalBs, 
     fecha: fechaHoy
   });
 
@@ -473,7 +460,6 @@ async function registrarPago() {
   }
 
   if (payMethod === 'FIADO') {
-    const totalUsd = total / tasaDia;
     const { error: fiadoErr } = await sb.from('fiados').insert({
       user_id: currentUserId,
       cliente_nombre: clientName,
